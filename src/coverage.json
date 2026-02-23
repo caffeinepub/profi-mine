@@ -1,0 +1,115 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-23T11:38:25.247Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 6,
+    "implemented": 5,
+    "items": [
+      {
+        "id": "REQ-1",
+        "summary": "Add a Free Tier subscription plan at $0/year with a limit of 3 models per year",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Update ProfileSetupModal to display and allow selection between Free Tier ($0/year - 3 models/year) and Premium Tier ($235/year - 300 models/year) during initial profile creation",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/auth/ProfileSetupModal.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/auth/ProfileSetupModal.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Update SubscriptionModal to display Free Tier option and allow upgrades from Free to Premium",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/subscription/SubscriptionModal.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/subscription/SubscriptionModal.tsx"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Limit Free Tier users to 2 export operations (CSV and PDF combined) with a counter displayed in the UI",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/export/ExportTab.tsx",
+          "frontend/src/hooks/useExcelExport.ts",
+          "frontend/src/hooks/usePdfExport.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/export/ExportTab.tsx",
+          "frontend/src/hooks/useExcelExport.ts",
+          "frontend/src/hooks/usePdfExport.ts"
+        ]
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Add individual export buttons to each chart component (CostBreakdownPieChart, CumulativeCashFlowChart, ProductionBarChart) that allow users to download the chart as an image file",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/charts/CostBreakdownPieChart.tsx",
+          "frontend/src/components/charts/CumulativeCashFlowChart.tsx",
+          "frontend/src/components/charts/ProductionBarChart.tsx",
+          "frontend/src/hooks/useChartExport.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/charts/CostBreakdownPieChart.tsx",
+          "frontend/src/components/charts/CumulativeCashFlowChart.tsx",
+          "frontend/src/components/charts/ProductionBarChart.tsx",
+          "frontend/src/hooks/useChartExport.ts"
+        ]
+      },
+      {
+        "id": "REQ-6",
+        "summary": "Update DashboardHeader subscription usage display to show model usage and export usage separately for Free tier users",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/dashboard/DashboardHeader.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/dashboard/DashboardHeader.tsx"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
+    "build-request.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/auth/ProfileSetupModal.tsx",
+    "frontend/src/components/charts/CostBreakdownPieChart.tsx",
+    "frontend/src/components/charts/CumulativeCashFlowChart.tsx",
+    "frontend/src/components/charts/ProductionBarChart.tsx",
+    "frontend/src/components/dashboard/DashboardHeader.tsx",
+    "frontend/src/components/export/ExportTab.tsx",
+    "frontend/src/components/subscription/SubscriptionModal.tsx",
+    "frontend/src/contexts/ProjectContext.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useChartExport.ts",
+    "frontend/src/hooks/useExcelExport.ts",
+    "frontend/src/hooks/usePdfExport.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}

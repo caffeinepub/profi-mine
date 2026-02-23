@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "Application with tiered pricing plans, model management, chart visualization, and export functionality",
+  "architectural_notes": [],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-update-profilesetupmodal-to-display-and-allow-selection-between-free-tier-0-year-3-models-year-and-premium-tier-235-year-300-models-year-during-initial-profile-creation",
+      "title": "Update ProfileSetupModal to display and allow selection between Free Tier ($0/year - 3 models/year) and Premium Tier ($235/year - 300 models/year) during initial profile creation",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-subscriptionmodal-to-display-free-tier-option-and-allow-upgrades-from-free-to-premium",
+      "title": "Update SubscriptionModal to display Free Tier option and allow upgrades from Free to Premium",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-limit-free-tier-users-to-2-export-operations-csv-and-pdf-combined-with-a-counter-displayed-in-the-ui",
+      "title": "Limit Free Tier users to 2 export operations (CSV and PDF combined) with a counter displayed in the UI",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-individual-export-buttons-to-each-chart-component-costbreakdownpiechart-cumulativecashflowchart-productionbarchart-that-allow-users-to-download-the-chart-as-an-image-file",
+      "title": "Add individual export buttons to each chart component (CostBreakdownPieChart, CumulativeCashFlowChart, ProductionBarChart) that allow users to download the chart as an image file",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-dashboardheader-subscription-usage-display-to-show-model-usage-and-export-usage-separately-for-free-tier-users",
+      "title": "Update DashboardHeader subscription usage display to show model usage and export usage separately for Free tier users",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Add Free Tier plan ($0/year - 3 models/year)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Limit free plan users to 2 free exports",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Add export button for chart images",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Add a Free Tier subscription plan at $0/year with a limit of 3 models per year",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Add Free Tier plan and chart export functionality",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

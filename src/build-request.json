@@ -1,0 +1,134 @@
+{
+  "kind": "build_request",
+  "title": "Add Free Tier plan and chart export functionality",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Add a Free Tier subscription plan at $0/year with a limit of 3 models per year",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Add Free Tier plan ($0/year - 3 models/year"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend enum includes a #free tier option",
+        "Free tier users are limited to 3 models per year",
+        "Free tier is available alongside existing Premium tier"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Update ProfileSetupModal to display and allow selection between Free Tier ($0/year - 3 models/year) and Premium Tier ($235/year - 300 models/year) during initial profile creation",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Add Free Tier plan ($0/year - 3 models/year"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Profile setup modal shows both tier options with pricing and limits",
+        "Users can select either Free or Premium tier during signup",
+        "Selected tier is saved to the user profile"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Update SubscriptionModal to display Free Tier option and allow upgrades from Free to Premium",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Add Free Tier plan ($0/year - 3 models/year"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Subscription modal displays Free Tier information when applicable",
+        "Free tier users see upgrade option to Premium",
+        "Upgrade flow initiates Stripe checkout for Premium tier"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Limit Free Tier users to 2 export operations (CSV and PDF combined) with a counter displayed in the UI",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Make just 2 free exports for the user on the free plan"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend tracks export count separately from model count for Free tier users",
+        "Free tier users can perform exactly 2 exports total",
+        "Export buttons are disabled after 2 exports with a message prompting upgrade",
+        "Export counter is displayed in the ExportTab showing remaining exports"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Add individual export buttons to each chart component (CostBreakdownPieChart, CumulativeCashFlowChart, ProductionBarChart) that allow users to download the chart as an image file",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Add export button for the chart images"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each chart has a visible export button (e.g., icon button in top-right corner)",
+        "Clicking export button downloads the chart as a PNG image file",
+        "Export uses browser-native methods (canvas toBlob/toDataURL or similar) since html2canvas is not available",
+        "Exported filename includes chart type and timestamp"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Update DashboardHeader subscription usage display to show model usage and export usage separately for Free tier users",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Make just 2 free exports for the user on the free plan"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Free tier users see both 'Models: X/3' and 'Exports: X/2' in the header",
+        "Premium tier users only see model usage as before",
+        "Display updates after each model save or export action"
+      ]
+    }
+  ],
+  "constraints": [
+    "Maintain single-actor architecture for all backend logic",
+    "Preserve existing Premium tier functionality at $235/year for 300 models/year",
+    "Do not modify immutable frontend paths: useInternetIdentity hooks, useActor.ts, main.tsx, or components/ui",
+    "Use only React, Tailwind CSS, and React Query for frontend implementation",
+    "Export counting must not interfere with existing model counting logic"
+  ],
+  "nonGoals": [
+    "Changing the Premium tier pricing or model limits",
+    "Adding additional subscription tiers beyond Free and Premium",
+    "Implementing server-side image generation",
+    "Adding analytics or tracking beyond basic usage counters"
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

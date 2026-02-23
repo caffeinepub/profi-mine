@@ -1,0 +1,115 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-update-profilesetupmodal-to-display-and-allow-selection-between-free-tier-0-year-3-models-year-and-premium-tier-235-year-300-models-year-during-initial-profile-creation",
+      "featureTitle": "Update ProfileSetupModal to display and allow selection between Free Tier ($0/year - 3 models/year) and Premium Tier ($235/year - 300 models/year) during initial profile creation",
+      "files": [
+        "frontend/src/components/auth/ProfileSetupModal.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-subscriptionmodal-to-display-free-tier-option-and-allow-upgrades-from-free-to-premium",
+      "featureTitle": "Update SubscriptionModal to display Free Tier option and allow upgrades from Free to Premium",
+      "files": [
+        "frontend/src/components/subscription/SubscriptionModal.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-limit-free-tier-users-to-2-export-operations-csv-and-pdf-combined-with-a-counter-displayed-in-the-ui",
+      "featureTitle": "Limit Free Tier users to 2 export operations (CSV and PDF combined) with a counter displayed in the UI",
+      "files": [
+        "frontend/src/components/export/ExportTab.tsx",
+        "frontend/src/hooks/useExcelExport.ts",
+        "frontend/src/hooks/usePdfExport.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-individual-export-buttons-to-each-chart-component-costbreakdownpiechart-cumulativecashflowchart-productionbarchart-that-allow-users-to-download-the-chart-as-an-image-file",
+      "featureTitle": "Add individual export buttons to each chart component (CostBreakdownPieChart, CumulativeCashFlowChart, ProductionBarChart) that allow users to download the chart as an image file",
+      "files": [
+        "frontend/src/components/charts/CostBreakdownPieChart.tsx",
+        "frontend/src/components/charts/CumulativeCashFlowChart.tsx",
+        "frontend/src/components/charts/ProductionBarChart.tsx",
+        "frontend/src/hooks/useChartExport.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-dashboardheader-subscription-usage-display-to-show-model-usage-and-export-usage-separately-for-free-tier-users",
+      "featureTitle": "Update DashboardHeader subscription usage display to show model usage and export usage separately for Free tier users",
+      "files": [
+        "frontend/src/components/dashboard/DashboardHeader.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

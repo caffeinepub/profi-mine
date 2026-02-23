@@ -1,0 +1,112 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Add Free Tier plan and chart export functionality",
+  "requirements": [
+    {
+      "id": "REQ-2",
+      "summary": "Update ProfileSetupModal to display and allow selection between Free Tier ($0/year - 3 models/year) and Premium Tier ($235/year - 300 models/year) during initial profile creation",
+      "acceptanceCriteria": [
+        "Profile setup modal shows both tier options with pricing and limits",
+        "Users can select either Free or Premium tier during signup",
+        "Selected tier is saved to the user profile"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/auth/ProfileSetupModal.tsx",
+          "operation": "modify",
+          "description": "Add tier selection UI to the profile setup modal. Display two tier options: Free Tier ($0/year - 3 models/year) and Premium Tier ($235/year - 300 models/year). Include radio buttons or card-based selection UI for choosing between tiers. Update the saveCallerUserProfile call to include the selected tier (SubscriptionTier.free or SubscriptionTier.premium). Use the backend-interface types for SubscriptionTier. Ensure the modal validates that a tier is selected before allowing profile creation."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Update SubscriptionModal to display Free Tier option and allow upgrades from Free to Premium",
+      "acceptanceCriteria": [
+        "Subscription modal displays Free Tier information when applicable",
+        "Free tier users see upgrade option to Premium",
+        "Upgrade flow initiates Stripe checkout for Premium tier"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/subscription/SubscriptionModal.tsx",
+          "operation": "modify",
+          "description": "Add conditional rendering to display Free Tier information when the user's current tier is 'free'. Show tier details: $0/year, 3 models/year limit, 2 exports total. For Free tier users, display an 'Upgrade to Premium' button that initiates the Stripe checkout flow for the Premium tier. Ensure the existing Premium tier upgrade flow is preserved. Use the backend UserProfile.tier field to determine the current tier. Add visual distinction between Free and Premium tier displays."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Limit Free Tier users to 2 export operations (CSV and PDF combined) with a counter displayed in the UI",
+      "acceptanceCriteria": [
+        "Export buttons are disabled after 2 exports with a message prompting upgrade",
+        "Export counter is displayed in the ExportTab showing remaining exports"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/export/ExportTab.tsx",
+          "operation": "modify",
+          "description": "Add export limit checking for Free tier users. Display an export counter showing remaining exports (e.g., 'Exports remaining: X/2') prominently at the top of the tab for Free tier users. Disable both CSV and PDF export buttons when the user has reached 2 total exports. Show an upgrade prompt message when exports are exhausted: 'You have used all your free exports. Upgrade to Premium for unlimited exports.' Use the UserProfile.exportsRemainingAnnual field from the backend to track remaining exports. Call the backend decrementExportCount() method after each successful export. For Premium tier users, do not show the counter or limits."
+        },
+        {
+          "path": "frontend/src/hooks/useExcelExport.ts",
+          "operation": "modify",
+          "description": "Update the CSV export hook to call the backend decrementExportCount() method before initiating the export. Add error handling to prevent export if canExport() returns false. Display appropriate error messages if the export limit is reached. Ensure the export only proceeds if the user has remaining exports."
+        },
+        {
+          "path": "frontend/src/hooks/usePdfExport.ts",
+          "operation": "modify",
+          "description": "Update the PDF export hook to call the backend decrementExportCount() method before showing the browser print dialog alert. Add error handling to prevent the alert if canExport() returns false. Display appropriate error messages if the export limit is reached. Ensure the export flow only proceeds if the user has remaining exports."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Add individual export buttons to each chart component that allow users to download the chart as an image file",
+      "acceptanceCriteria": [
+        "Each chart has a visible export button (e.g., icon button in top-right corner)",
+        "Clicking export button downloads the chart as a PNG image file",
+        "Export uses browser-native methods (canvas toBlob/toDataURL or similar) since html2canvas is not available",
+        "Exported filename includes chart type and timestamp"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/charts/CostBreakdownPieChart.tsx",
+          "operation": "modify",
+          "description": "Add an export button in the top-right corner of the chart component (use Download icon from lucide-react). Implement chart export using Recharts' built-in toCanvas() method or by accessing the SVG element and converting it to PNG using browser-native Canvas API. On button click, trigger download of the chart as a PNG file with filename format 'cost-breakdown-chart_YYYY-MM-DD_HH-MM-SS.png'. Position the button absolutely within the chart container. Include hover state and tooltip explaining 'Export chart as image'."
+        },
+        {
+          "path": "frontend/src/components/charts/CumulativeCashFlowChart.tsx",
+          "operation": "modify",
+          "description": "Add an export button in the top-right corner of the chart component (use Download icon from lucide-react). Implement chart export using Recharts' built-in toCanvas() method or by accessing the SVG element and converting it to PNG using browser-native Canvas API. On button click, trigger download of the chart as a PNG file with filename format 'cumulative-cash-flow-chart_YYYY-MM-DD_HH-MM-SS.png'. Position the button absolutely within the chart container. Include hover state and tooltip explaining 'Export chart as image'."
+        },
+        {
+          "path": "frontend/src/components/charts/ProductionBarChart.tsx",
+          "operation": "modify",
+          "description": "Add an export button in the top-right corner of the chart component (use Download icon from lucide-react). Implement chart export using Recharts' built-in toCanvas() method or by accessing the SVG element and converting it to PNG using browser-native Canvas API. On button click, trigger download of the chart as a PNG file with filename format 'production-bar-chart_YYYY-MM-DD_HH-MM-SS.png'. Position the button absolutely within the chart container. Include hover state and tooltip explaining 'Export chart as image'."
+        },
+        {
+          "path": "frontend/src/hooks/useChartExport.ts",
+          "operation": "modify",
+          "description": "Replace the existing alert-based implementation with a functional chart export hook. Implement a function that accepts a chart container ref and chart name, converts the Recharts SVG to PNG using Canvas API (toDataURL or toBlob), and triggers a download with a timestamped filename. Handle errors gracefully and provide fallback messages if export fails. Export the hook for use in chart components."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Update DashboardHeader subscription usage display to show model usage and export usage separately for Free tier users",
+      "acceptanceCriteria": [
+        "Free tier users see both 'Models: X/3' and 'Exports: X/2' in the header",
+        "Premium tier users only see model usage as before",
+        "Display updates after each model save or export action"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/dashboard/DashboardHeader.tsx",
+          "operation": "modify",
+          "description": "Update the subscription usage display section to conditionally show export usage for Free tier users. For Free tier users, display both 'Models: X/3' and 'Exports: X/2' (or '(X/2 exports)' on a second line if space is limited). For Premium tier users, maintain the current display showing only model usage. Use the UserProfile.tier field to determine which display to show. Use UserProfile.exportsRemainingAnnual to calculate exports used (2 - exportsRemainingAnnual). Ensure the display updates reactively when the user profile query data changes after saves or exports."
+        }
+      ]
+    }
+  ]
+}

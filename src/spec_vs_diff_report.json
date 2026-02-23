@@ -1,0 +1,27 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-23T11:38:25.244Z",
+  "summary": "All six requirements (REQ-1 through REQ-6) have been implemented. The diff shows comprehensive changes to backend types, frontend components, and export functionality. Free tier with 3 models/year is available, profile/subscription modals display both tiers, export limits (2 combined CSV/PDF exports) are enforced for free users, chart export buttons added to all three charts, and the dashboard header displays separate model and export usage for free tier users.",
+  "missing_requirements": [],
+  "hallucinated_features": [],
+  "confidence": 0.95,
+  "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/components/auth/ProfileSetupModal.tsx",
+    "frontend/src/components/charts/CostBreakdownPieChart.tsx",
+    "frontend/src/components/charts/CumulativeCashFlowChart.tsx",
+    "frontend/src/components/charts/ProductionBarChart.tsx",
+    "frontend/src/components/dashboard/DashboardHeader.tsx",
+    "frontend/src/components/export/ExportTab.tsx",
+    "frontend/src/components/subscription/SubscriptionModal.tsx",
+    "frontend/src/contexts/ProjectContext.tsx",
+    "frontend/src/hooks/useChartExport.ts",
+    "frontend/src/hooks/useExcelExport.ts",
+    "frontend/src/hooks/usePdfExport.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "project_state.json"
+  ]
+}

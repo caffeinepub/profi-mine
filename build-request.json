@@ -1,0 +1,62 @@
+{
+  "kind": "build_request",
+  "title": "Fix PDF export projections rendering and chart image export",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Fix the PDF export so that the model's financial projections (income statement table, cash flow statement table, summary KPIs, and charts) are fully and correctly rendered in the exported PDF. The current print-based export must capture all projections tab content, including scrollable table areas and chart elements, without truncation or missing sections.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Correct PDF exports, it is not rendering the model's projections properly."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Exported PDF includes all rows of the IncomeStatementTable and CashFlowStatementTable (no content clipped by overflow/scroll containers).",
+        "Exported PDF includes the SummaryKPIsTable with all KPI values correctly displayed.",
+        "Exported PDF includes all three charts (CumulativeCashFlowChart, ProductionBarChart, CostBreakdownPieChart) rendered as visible graphics.",
+        "Print media CSS in index.css correctly expands scrollable containers so all content is visible in the print layout.",
+        "The usePdfExport hook triggers the print dialog only after all projections content is fully laid out and chart SVGs are rendered."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Fix the chart image export functionality in useChartExport.ts so that each chart (CumulativeCashFlowChart, ProductionBarChart, CostBreakdownPieChart) exports the actual chart image as a PNG file. Currently the export captures the download button icon instead of the chart SVG. The hook must correctly target the Recharts SVG element within the chart container, not the export button itself.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Correct chart image exportations, it is not exporting the images, instead, it is exporting just the download button icon."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Clicking the export button on CumulativeCashFlowChart downloads a PNG file containing the cumulative cash flow line chart.",
+        "Clicking the export button on ProductionBarChart downloads a PNG file containing the production bar chart.",
+        "Clicking the export button on CostBreakdownPieChart downloads a PNG file containing the cost breakdown pie chart.",
+        "The exported PNG does not contain the download button icon or any UI chrome — only the chart graphic on a white background.",
+        "The useChartExport hook selects the SVG element from the chart container ref correctly, excluding button elements from the capture target.",
+        "Exported images render at 2x resolution as intended."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui.",
+    "Do not alter backend logic or data models.",
+    "Preserve existing export limit checking and decrement logic in useChartExport.ts and usePdfExport.ts."
+  ],
+  "nonGoals": [
+    "Adding new export formats beyond existing PDF and PNG chart exports.",
+    "Changing subscription tier logic or export quotas.",
+    "Redesigning the projections tab layout for non-print views."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

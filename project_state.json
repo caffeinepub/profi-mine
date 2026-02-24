@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "New project",
+  "architectural_notes": [],
+  "known_issues": [
+    "PDF exports not rendering model projections properly",
+    "Chart image export exports download button icon instead of chart image"
+  ],
+  "isFixRequest": true,
+  "existing_features": [
+    {
+      "id": "feature-fix-the-pdf-export-so-that-the-model-s-financial-projections-income-statement-table-cash-flow-statement-table-summary-kpis-and-charts-are-fully-and-correctly-rendered-in-the-exported-pdf-the-current-print-based-export-must-capture-all-projections-tab-content-including-scrollable-table-areas-and-chart-elements-without-truncation-or-missing-sections",
+      "title": "Fix the PDF export so that the model's financial projections (income statement table, cash flow statement table, summary KPIs, and charts) are fully and correctly rendered in the exported PDF. The current print-based export must capture all projections tab content, including scrollable table areas and chart elements, without truncation or missing sections.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-chart-image-export-functionality-in-usechartexport-ts-so-that-each-chart-cumulativecashflowchart-productionbarchart-costbreakdownpiechart-exports-the-actual-chart-image-as-a-png-file-currently-the-export-captures-the-download-button-icon-instead-of-the-chart-svg-the-hook-must-correctly-target-the-recharts-svg-element-within-the-chart-container-not-the-export-button-itself",
+      "title": "Fix the chart image export functionality in useChartExport.ts so that each chart (CumulativeCashFlowChart, ProductionBarChart, CostBreakdownPieChart) exports the actual chart image as a PNG file. Currently the export captures the download button icon instead of the chart SVG. The hook must correctly target the Recharts SVG element within the chart container, not the export button itself.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [],
+  "projectName": "Fix PDF export projections rendering and chart image export",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

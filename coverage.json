@@ -1,0 +1,76 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-24T13:30:46.661Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 2,
+    "implemented": 2,
+    "items": [
+      {
+        "id": "REQ-1",
+        "summary": "Fix the PDF export so that the model's financial projections (income statement table, cash flow statement table, summary KPIs, and charts) are fully and correctly rendered in the exported PDF. The current print-based export must capture all projections tab content, including scrollable table areas and chart elements, without truncation or missing sections.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/index.css",
+          "frontend/src/components/projections/IncomeStatementTable.tsx",
+          "frontend/src/components/projections/CashFlowStatementTable.tsx",
+          "frontend/src/components/projections/SummaryKPIsTable.tsx",
+          "frontend/src/components/charts/CumulativeCashFlowChart.tsx",
+          "frontend/src/components/charts/ProductionBarChart.tsx",
+          "frontend/src/components/charts/CostBreakdownPieChart.tsx",
+          "frontend/src/hooks/usePdfExport.ts",
+          "frontend/src/components/projections/ProjectionsTab.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/index.css",
+          "frontend/src/components/projections/IncomeStatementTable.tsx",
+          "frontend/src/components/projections/CashFlowStatementTable.tsx",
+          "frontend/src/components/charts/CumulativeCashFlowChart.tsx",
+          "frontend/src/components/charts/ProductionBarChart.tsx",
+          "frontend/src/components/charts/CostBreakdownPieChart.tsx",
+          "frontend/src/hooks/usePdfExport.ts"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Fix the chart image export functionality in useChartExport.ts so that each chart (CumulativeCashFlowChart, ProductionBarChart, CostBreakdownPieChart) exports the actual chart image as a PNG file. Currently the export captures the download button icon instead of the chart SVG. The hook must correctly target the Recharts SVG element within the chart container, not the export button itself.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useChartExport.ts",
+          "frontend/src/components/charts/CumulativeCashFlowChart.tsx",
+          "frontend/src/components/charts/ProductionBarChart.tsx",
+          "frontend/src/components/charts/CostBreakdownPieChart.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useChartExport.ts",
+          "frontend/src/components/charts/CumulativeCashFlowChart.tsx",
+          "frontend/src/components/charts/ProductionBarChart.tsx",
+          "frontend/src/components/charts/CostBreakdownPieChart.tsx"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "build-request.json",
+    "caffeine.lock.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/components/charts/CostBreakdownPieChart.tsx",
+    "frontend/src/components/charts/CumulativeCashFlowChart.tsx",
+    "frontend/src/components/charts/ProductionBarChart.tsx",
+    "frontend/src/components/projections/CashFlowStatementTable.tsx",
+    "frontend/src/components/projections/IncomeStatementTable.tsx",
+    "frontend/src/hooks/useChartExport.ts",
+    "frontend/src/hooks/usePdfExport.ts",
+    "frontend/src/index.css",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}

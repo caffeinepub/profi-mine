@@ -1,0 +1,56 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-fix-the-pdf-export-so-that-the-model-s-financial-projections-income-statement-table-cash-flow-statement-table-summary-kpis-and-charts-are-fully-and-correctly-rendered-in-the-exported-pdf-the-current-print-based-export-must-capture-all-projections-tab-content-including-scrollable-table-areas-and-chart-elements-without-truncation-or-missing-sections",
+      "featureTitle": "Fix the PDF export so that the model's financial projections (income statement table, cash flow statement table, summary KPIs, and charts) are fully and correctly rendered in the exported PDF. The current print-based export must capture all projections tab content, including scrollable table areas and chart elements, without truncation or missing sections.",
+      "files": [
+        "frontend/src/components/charts/CostBreakdownPieChart.tsx",
+        "frontend/src/components/charts/CumulativeCashFlowChart.tsx",
+        "frontend/src/components/charts/ProductionBarChart.tsx",
+        "frontend/src/components/projections/CashFlowStatementTable.tsx",
+        "frontend/src/components/projections/IncomeStatementTable.tsx",
+        "frontend/src/hooks/usePdfExport.ts",
+        "frontend/src/index.css"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-fix-the-chart-image-export-functionality-in-usechartexport-ts-so-that-each-chart-cumulativecashflowchart-productionbarchart-costbreakdownpiechart-exports-the-actual-chart-image-as-a-png-file-currently-the-export-captures-the-download-button-icon-instead-of-the-chart-svg-the-hook-must-correctly-target-the-recharts-svg-element-within-the-chart-container-not-the-export-button-itself",
+      "featureTitle": "Fix the chart image export functionality in useChartExport.ts so that each chart (CumulativeCashFlowChart, ProductionBarChart, CostBreakdownPieChart) exports the actual chart image as a PNG file. Currently the export captures the download button icon instead of the chart SVG. The hook must correctly target the Recharts SVG element within the chart container, not the export button itself.",
+      "files": [
+        "frontend/src/components/charts/CostBreakdownPieChart.tsx",
+        "frontend/src/components/charts/CumulativeCashFlowChart.tsx",
+        "frontend/src/components/charts/ProductionBarChart.tsx",
+        "frontend/src/hooks/useChartExport.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

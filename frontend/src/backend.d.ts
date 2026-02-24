@@ -42,6 +42,13 @@ export interface MiningProject {
     oreReserves: number;
     annualRevenue?: number;
 }
+export type ApiResult = {
+    __kind__: "error";
+    error: string;
+} | {
+    __kind__: "success";
+    success: null;
+};
 export interface SensitivityRange {
     max: number;
     min: number;
@@ -55,10 +62,6 @@ export interface http_request_result {
     body: Uint8Array;
     headers: Array<http_header>;
 }
-export interface ExportLimit {
-    CSV_AND_PDF_COMBINED_MAX: bigint;
-    MAX_OPERATIONS_PDF_AND_CSV: bigint;
-}
 export type SubscriptionTier = {
     __kind__: "premium";
     premium: ExportLimit;
@@ -69,12 +72,21 @@ export type SubscriptionTier = {
     __kind__: "basic";
     basic: ExportLimit;
 };
+export interface ExportLimit {
+    CSV_AND_PDF_COMBINED_MAX: bigint;
+    MAX_OPERATIONS_PDF_AND_CSV: bigint;
+}
 export interface ShoppingItem {
     productName: string;
     currency: string;
     quantity: bigint;
     priceInCents: bigint;
     productDescription: string;
+}
+export interface SaveProjectResult {
+    status: ApiResult;
+    projectId: Uint8Array;
+    timestamp: bigint;
 }
 export interface LogEntry {
     message: string;
@@ -137,6 +149,7 @@ export interface backendInterface {
     isStripeConfigured(): Promise<boolean>;
     refreshProjects(): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    saveProject(project: MiningProject): Promise<SaveProjectResult>;
     setStripeConfiguration(config: StripeConfiguration): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     updateSensitivityRange(setting: string, update: SensitivityRange): Promise<void>;

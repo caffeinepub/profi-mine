@@ -1,59 +1,76 @@
 {
   "kind": "build_request",
-  "title": "Fix PDF export projections rendering and chart image export",
+  "title": "Remove PDF export, fix Models Save action, and fix duplicate inputs",
+  "projectName": "ProFi Mine",
   "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix the PDF export so that the model's financial projections (income statement table, cash flow statement table, summary KPIs, and charts) are fully and correctly rendered in the exported PDF. The current print-based export must capture all projections tab content, including scrollable table areas and chart elements, without truncation or missing sections.",
+      "text": "Remove the PDF export option entirely from the Export tab. This includes removing the PDF download button/UI from ExportTab.tsx, removing or disabling any calls to usePdfExport, and removing the print styles from index.css that were used for PDF export.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-recent"
+          "msg-5"
         ],
         "quotes": [
-          "Correct PDF exports, it is not rendering the model's projections properly."
+          "Remove PDF export option."
         ]
       },
       "acceptanceCriteria": [
-        "Exported PDF includes all rows of the IncomeStatementTable and CashFlowStatementTable (no content clipped by overflow/scroll containers).",
-        "Exported PDF includes the SummaryKPIsTable with all KPI values correctly displayed.",
-        "Exported PDF includes all three charts (CumulativeCashFlowChart, ProductionBarChart, CostBreakdownPieChart) rendered as visible graphics.",
-        "Print media CSS in index.css correctly expands scrollable containers so all content is visible in the print layout.",
-        "The usePdfExport hook triggers the print dialog only after all projections content is fully laid out and chart SVGs are rendered."
+        "The Export tab no longer displays a PDF export button or any PDF-related UI.",
+        "No PDF export functionality is triggered from any part of the application.",
+        "CSV export option remains intact and functional."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Fix the chart image export functionality in useChartExport.ts so that each chart (CumulativeCashFlowChart, ProductionBarChart, CostBreakdownPieChart) exports the actual chart image as a PNG file. Currently the export captures the download button icon instead of the chart SVG. The hook must correctly target the Recharts SVG element within the chart container, not the export button itself.",
-      "target": "frontend",
+      "text": "Investigate and fix the failing 'Save' action for projects in SaveProjectModal.tsx and the related backend call. Ensure that saving a project correctly calls the backend saveProject method via the mutation in useQueries.ts, handles errors gracefully, and shows a success toast on completion.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-recent"
+          "msg-5"
         ],
         "quotes": [
-          "Correct chart image exportations, it is not exporting the images, instead, it is exporting just the download button icon."
+          "Models 'Save' action is failing, please correct it."
         ]
       },
       "acceptanceCriteria": [
-        "Clicking the export button on CumulativeCashFlowChart downloads a PNG file containing the cumulative cash flow line chart.",
-        "Clicking the export button on ProductionBarChart downloads a PNG file containing the production bar chart.",
-        "Clicking the export button on CostBreakdownPieChart downloads a PNG file containing the cost breakdown pie chart.",
-        "The exported PNG does not contain the download button icon or any UI chrome — only the chart graphic on a white background.",
-        "The useChartExport hook selects the SVG element from the chart container ref correctly, excluding button elements from the capture target.",
-        "Exported images render at 2x resolution as intended."
+        "Clicking 'Save' in the SaveProjectModal successfully persists the project to the backend.",
+        "A success toast notification is shown after a successful save.",
+        "An error toast or message is shown if the save fails.",
+        "No unhandled exceptions are thrown during the save flow."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Fix the duplicate Equity Ratio and Interest Rate fields in the Inputs dashboard. These fields are defined in FinancingSection.tsx and should appear exactly once. Audit InputsTab.tsx and FinancingSection.tsx to identify where the duplication occurs (e.g., fields rendered twice or EconomicParametersSection also rendering them) and remove the duplicate instances.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "Equity Ratio and Interest Rate are duplicated in the 'Inputs' dashboard, please correct it."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Equity Ratio appears exactly once in the Inputs dashboard.",
+        "Interest Rate appears exactly once in the Inputs dashboard.",
+        "Both fields remain functional and correctly bound to the ProjectContext state.",
+        "No other input fields are accidentally removed or duplicated."
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui.",
-    "Do not alter backend logic or data models.",
-    "Preserve existing export limit checking and decrement logic in useChartExport.ts and usePdfExport.ts."
+    "Do not remove CSV export functionality.",
+    "Do not alter immutable frontend paths (hooks/useInternetIdentity.ts, hooks/useActor.ts, main.tsx, components/ui).",
+    "Preserve all existing input fields in the Inputs dashboard except for removing the duplicate Equity Ratio and Interest Rate entries."
   ],
   "nonGoals": [
-    "Adding new export formats beyond existing PDF and PNG chart exports.",
-    "Changing subscription tier logic or export quotas.",
-    "Redesigning the projections tab layout for non-print views."
+    "Redesigning the Export tab layout beyond removing PDF.",
+    "Adding new export formats.",
+    "Modifying subscription tier logic or export quota enforcement.",
+    "Changing the backend data model for projects."
   ],
   "imageRequirements": {
     "required": [],

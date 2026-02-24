@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { calculateFinancials, type ProjectInputs, type FinancialCalculations } from '../utils/calculations';
-import { useSaveProjectMutation, useLoadProject as useLoadProjectQuery, useGetCallerUserProfile } from '../hooks/useQueries';
-import { toast } from 'sonner';
+import { useSaveProject, useGetCallerUserProfile } from '../hooks/useQueries';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import type { SubscriptionTier } from '../backend';
 
 interface ProjectContextType {
@@ -68,7 +68,8 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   const [projectName, setProjectName] = useState('');
   const [projectId, setProjectId] = useState<Uint8Array | null>(null);
 
-  const saveProjectMutation = useSaveProjectMutation();
+  const saveProjectMutation = useSaveProject();
+  const { identity } = useInternetIdentity();
   const { data: userProfile, isLoading: profileLoading } = useGetCallerUserProfile();
 
   // Extract subscription information from user profile
@@ -90,14 +91,52 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     if (!calculations) {
       throw new Error('No calculations available');
     }
+    if (!identity) {
+      throw new Error('User not authenticated');
+    }
 
     const id = projectId || crypto.getRandomValues(new Uint8Array(16));
-    
+    const now = BigInt(Date.now()) * BigInt(1_000_000);
+
     await saveProjectMutation.mutateAsync({
       id,
       name,
-      inputs,
-      calculations,
+      owner: identity.getPrincipal(),
+      creationDate: now,
+      lastModified: now,
+      oreReserves: inputs.oreReserves,
+      romTonnage: inputs.romTonnageSchedule.reduce((a, b) => a + b, 0) / inputs.romTonnageSchedule.length,
+      oreGrade: inputs.oreGrade,
+      recoveryRate: inputs.recoveryRate / 100,
+      commodityPrice: inputs.commodityPrices[0] ?? 0,
+      miningCost: inputs.miningCost,
+      processingCost: inputs.processingCost,
+      gAndACost: inputs.gAndACost,
+      strippingRatio: inputs.strippingRatio,
+      depreciation: inputs.sustainingCapex,
+      capex: inputs.initialCapex,
+      discountRate: inputs.discountRate / 100,
+      averageTaxRate: inputs.taxRate / 100,
+      lom: calculations.lom,
+      annualProduction: calculations.yearlyData.length > 0
+        ? calculations.yearlyData.reduce((s, d) => s + d.production, 0) / calculations.yearlyData.length
+        : undefined,
+      annualRevenue: calculations.yearlyData.length > 0
+        ? calculations.yearlyData.reduce((s, d) => s + d.revenue, 0) / calculations.yearlyData.length
+        : undefined,
+      annualOpex: calculations.yearlyData.length > 0
+        ? calculations.yearlyData.reduce((s, d) => s + d.opex, 0) / calculations.yearlyData.length
+        : undefined,
+      ebitda: calculations.avgEbitda,
+      ocf: calculations.yearlyData.length > 0
+        ? calculations.yearlyData.reduce((s, d) => s + d.ocf, 0) / calculations.yearlyData.length
+        : undefined,
+      fcf: calculations.yearlyData.length > 0
+        ? calculations.yearlyData.reduce((s, d) => s + d.fcf, 0) / calculations.yearlyData.length
+        : undefined,
+      npv: calculations.npv,
+      roi: calculations.roi,
+      paybackPeriod: calculations.paybackPeriod,
     });
 
     setProjectId(id);
@@ -105,8 +144,6 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   };
 
   const loadProject = async (id: Uint8Array) => {
-    // This will be implemented with the useLoadProject hook
-    // For now, just set the ID
     setProjectId(id);
   };
 

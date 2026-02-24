@@ -124,6 +124,13 @@ export interface MiningProject {
     oreReserves: number;
     annualRevenue?: number;
 }
+export type ApiResult = {
+    __kind__: "error";
+    error: string;
+} | {
+    __kind__: "success";
+    success: null;
+};
 export interface SensitivityRange {
     max: number;
     min: number;
@@ -137,10 +144,6 @@ export interface http_request_result {
     body: Uint8Array;
     headers: Array<http_header>;
 }
-export interface ExportLimit {
-    CSV_AND_PDF_COMBINED_MAX: bigint;
-    MAX_OPERATIONS_PDF_AND_CSV: bigint;
-}
 export type SubscriptionTier = {
     __kind__: "premium";
     premium: ExportLimit;
@@ -151,12 +154,21 @@ export type SubscriptionTier = {
     __kind__: "basic";
     basic: ExportLimit;
 };
+export interface ExportLimit {
+    CSV_AND_PDF_COMBINED_MAX: bigint;
+    MAX_OPERATIONS_PDF_AND_CSV: bigint;
+}
 export interface ShoppingItem {
     productName: string;
     currency: string;
     quantity: bigint;
     priceInCents: bigint;
     productDescription: string;
+}
+export interface SaveProjectResult {
+    status: ApiResult;
+    projectId: Uint8Array;
+    timestamp: bigint;
 }
 export interface LogEntry {
     message: string;
@@ -220,13 +232,14 @@ export interface backendInterface {
     isStripeConfigured(): Promise<boolean>;
     refreshProjects(): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    saveProject(project: MiningProject): Promise<SaveProjectResult>;
     setStripeConfiguration(config: StripeConfiguration): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     updateSensitivityRange(setting: string, update: SensitivityRange): Promise<void>;
     updateSubscription(principalId: Principal): Promise<void>;
     upgradeSubscription(_tier: string, _planType: string | null): Promise<void>;
 }
-import type { ExportLimit as _ExportLimit, MiningProject as _MiningProject, StripeSessionStatus as _StripeSessionStatus, SubscriptionTier as _SubscriptionTier, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
+import type { ApiResult as _ApiResult, ExportLimit as _ExportLimit, MiningProject as _MiningProject, SaveProjectResult as _SaveProjectResult, StripeSessionStatus as _StripeSessionStatus, SubscriptionTier as _SubscriptionTier, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _initializeAccessControlWithSecret(arg0: string): Promise<void> {
@@ -551,6 +564,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async saveProject(arg0: MiningProject): Promise<SaveProjectResult> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.saveProject(to_candid_MiningProject_n23(this._uploadFile, this._downloadFile, arg0));
+                return from_candid_SaveProjectResult_n25(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.saveProject(to_candid_MiningProject_n23(this._uploadFile, this._downloadFile, arg0));
+            return from_candid_SaveProjectResult_n25(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async setStripeConfiguration(arg0: StripeConfiguration): Promise<void> {
         if (this.processError) {
             try {
@@ -610,20 +637,26 @@ export class Backend implements backendInterface {
     async upgradeSubscription(arg0: string, arg1: string | null): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.upgradeSubscription(arg0, to_candid_opt_n23(this._uploadFile, this._downloadFile, arg1));
+                const result = await this.actor.upgradeSubscription(arg0, to_candid_opt_n29(this._uploadFile, this._downloadFile, arg1));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.upgradeSubscription(arg0, to_candid_opt_n23(this._uploadFile, this._downloadFile, arg1));
+            const result = await this.actor.upgradeSubscription(arg0, to_candid_opt_n29(this._uploadFile, this._downloadFile, arg1));
             return result;
         }
     }
 }
+function from_candid_ApiResult_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ApiResult): ApiResult {
+    return from_candid_variant_n28(_uploadFile, _downloadFile, value);
+}
 function from_candid_MiningProject_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _MiningProject): MiningProject {
     return from_candid_record_n12(_uploadFile, _downloadFile, value);
+}
+function from_candid_SaveProjectResult_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _SaveProjectResult): SaveProjectResult {
+    return from_candid_record_n26(_uploadFile, _downloadFile, value);
 }
 function from_candid_StripeSessionStatus_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _StripeSessionStatus): StripeSessionStatus {
     return from_candid_variant_n16(_uploadFile, _downloadFile, value);
@@ -748,6 +781,21 @@ function from_candid_record_n17(_uploadFile: (file: ExternalBlob) => Promise<Uin
         response: value.response
     };
 }
+function from_candid_record_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    status: _ApiResult;
+    projectId: Uint8Array;
+    timestamp: bigint;
+}): {
+    status: ApiResult;
+    projectId: Uint8Array;
+    timestamp: bigint;
+} {
+    return {
+        status: from_candid_ApiResult_n27(_uploadFile, _downloadFile, value.status),
+        projectId: value.projectId,
+        timestamp: value.timestamp
+    };
+}
 function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     lastResetTimestamp: bigint;
     exportsRemainingAnnual: bigint;
@@ -813,6 +861,25 @@ function from_candid_variant_n16(_uploadFile: (file: ExternalBlob) => Promise<Ui
         failed: value.failed
     } : value;
 }
+function from_candid_variant_n28(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    error: string;
+} | {
+    success: null;
+}): {
+    __kind__: "error";
+    error: string;
+} | {
+    __kind__: "success";
+    success: null;
+} {
+    return "error" in value ? {
+        __kind__: "error",
+        error: value.error
+    } : "success" in value ? {
+        __kind__: "success",
+        success: value.success
+    } : value;
+}
 function from_candid_variant_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     premium: _ExportLimit;
 } | {
@@ -846,6 +913,9 @@ function from_candid_vec_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
 function from_candid_vec_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_SubscriptionTier>): Array<SubscriptionTier> {
     return value.map((x)=>from_candid_SubscriptionTier_n6(_uploadFile, _downloadFile, x));
 }
+function to_candid_MiningProject_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: MiningProject): _MiningProject {
+    return to_candid_record_n24(_uploadFile, _downloadFile, value);
+}
 function to_candid_SubscriptionTier_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: SubscriptionTier): _SubscriptionTier {
     return to_candid_variant_n22(_uploadFile, _downloadFile, value);
 }
@@ -855,7 +925,7 @@ function to_candid_UserProfile_n19(_uploadFile: (file: ExternalBlob) => Promise<
 function to_candid_UserRole_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
     return to_candid_variant_n2(_uploadFile, _downloadFile, value);
 }
-function to_candid_opt_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: string | null): [] | [string] {
+function to_candid_opt_n29(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: string | null): [] | [string] {
     return value === null ? candid_none() : candid_some(value);
 }
 function to_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -883,6 +953,96 @@ function to_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         modelsCreatedAnnual: value.modelsCreatedAnnual,
         email: value.email ? candid_some(value.email) : candid_none(),
         organization: value.organization ? candid_some(value.organization) : candid_none()
+    };
+}
+function to_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: Uint8Array;
+    fcf?: number;
+    lom?: number;
+    npv?: number;
+    ocf?: number;
+    roi?: number;
+    ebitda?: number;
+    romTonnage: number;
+    recoveryRate: number;
+    commodityPrice: number;
+    owner: Principal;
+    capex: number;
+    annualOpex?: number;
+    averageTaxRate: number;
+    name: string;
+    discountRate: number;
+    depreciation: number;
+    processingCost: number;
+    annualProduction?: number;
+    lastModified: bigint;
+    creationDate: bigint;
+    miningCost: number;
+    strippingRatio: number;
+    paybackPeriod?: number;
+    gAndACost: number;
+    oreGrade: number;
+    oreReserves: number;
+    annualRevenue?: number;
+}): {
+    id: Uint8Array;
+    fcf: [] | [number];
+    lom: [] | [number];
+    npv: [] | [number];
+    ocf: [] | [number];
+    roi: [] | [number];
+    ebitda: [] | [number];
+    romTonnage: number;
+    recoveryRate: number;
+    commodityPrice: number;
+    owner: Principal;
+    capex: number;
+    annualOpex: [] | [number];
+    averageTaxRate: number;
+    name: string;
+    discountRate: number;
+    depreciation: number;
+    processingCost: number;
+    annualProduction: [] | [number];
+    lastModified: bigint;
+    creationDate: bigint;
+    miningCost: number;
+    strippingRatio: number;
+    paybackPeriod: [] | [number];
+    gAndACost: number;
+    oreGrade: number;
+    oreReserves: number;
+    annualRevenue: [] | [number];
+} {
+    return {
+        id: value.id,
+        fcf: value.fcf ? candid_some(value.fcf) : candid_none(),
+        lom: value.lom ? candid_some(value.lom) : candid_none(),
+        npv: value.npv ? candid_some(value.npv) : candid_none(),
+        ocf: value.ocf ? candid_some(value.ocf) : candid_none(),
+        roi: value.roi ? candid_some(value.roi) : candid_none(),
+        ebitda: value.ebitda ? candid_some(value.ebitda) : candid_none(),
+        romTonnage: value.romTonnage,
+        recoveryRate: value.recoveryRate,
+        commodityPrice: value.commodityPrice,
+        owner: value.owner,
+        capex: value.capex,
+        annualOpex: value.annualOpex ? candid_some(value.annualOpex) : candid_none(),
+        averageTaxRate: value.averageTaxRate,
+        name: value.name,
+        discountRate: value.discountRate,
+        depreciation: value.depreciation,
+        processingCost: value.processingCost,
+        annualProduction: value.annualProduction ? candid_some(value.annualProduction) : candid_none(),
+        lastModified: value.lastModified,
+        creationDate: value.creationDate,
+        miningCost: value.miningCost,
+        strippingRatio: value.strippingRatio,
+        paybackPeriod: value.paybackPeriod ? candid_some(value.paybackPeriod) : candid_none(),
+        gAndACost: value.gAndACost,
+        oreGrade: value.oreGrade,
+        oreReserves: value.oreReserves,
+        annualRevenue: value.annualRevenue ? candid_some(value.annualRevenue) : candid_none()
     };
 }
 function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {

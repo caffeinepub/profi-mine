@@ -1,33 +1,43 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
+  "summary": "Financial modeling app with an Inputs dashboard. Removing PDF export, fixing Models Save action, and fixing duplicate Equity Ratio and Interest Rate fields in the Inputs dashboard.",
   "architectural_notes": [],
   "known_issues": [
-    "PDF exports not rendering model projections properly",
-    "Chart image export exports download button icon instead of chart image"
+    "Models 'Save' action is failing",
+    "Equity Ratio and Interest Rate are duplicated in the Inputs dashboard"
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-fix-the-pdf-export-so-that-the-model-s-financial-projections-income-statement-table-cash-flow-statement-table-summary-kpis-and-charts-are-fully-and-correctly-rendered-in-the-exported-pdf-the-current-print-based-export-must-capture-all-projections-tab-content-including-scrollable-table-areas-and-chart-elements-without-truncation-or-missing-sections",
-      "title": "Fix the PDF export so that the model's financial projections (income statement table, cash flow statement table, summary KPIs, and charts) are fully and correctly rendered in the exported PDF. The current print-based export must capture all projections tab content, including scrollable table areas and chart elements, without truncation or missing sections.",
+      "id": "feature-remove-the-pdf-export-option-entirely-from-the-export-tab-this-includes-removing-the-pdf-download-button-ui-from-exporttab-tsx-removing-or-disabling-any-calls-to-usepdfexport-and-removing-the-print-styles-from-index-css-that-were-used-for-pdf-export",
+      "title": "Remove the PDF export option entirely from the Export tab. This includes removing the PDF download button/UI from ExportTab.tsx, removing or disabling any calls to usePdfExport, and removing the print styles from index.css that were used for PDF export.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-fix-the-chart-image-export-functionality-in-usechartexport-ts-so-that-each-chart-cumulativecashflowchart-productionbarchart-costbreakdownpiechart-exports-the-actual-chart-image-as-a-png-file-currently-the-export-captures-the-download-button-icon-instead-of-the-chart-svg-the-hook-must-correctly-target-the-recharts-svg-element-within-the-chart-container-not-the-export-button-itself",
-      "title": "Fix the chart image export functionality in useChartExport.ts so that each chart (CumulativeCashFlowChart, ProductionBarChart, CostBreakdownPieChart) exports the actual chart image as a PNG file. Currently the export captures the download button icon instead of the chart SVG. The hook must correctly target the Recharts SVG element within the chart container, not the export button itself.",
+      "id": "feature-investigate-and-fix-the-failing-save-action-for-projects-in-saveprojectmodal-tsx-and-the-related-backend-call-ensure-that-saving-a-project-correctly-calls-the-backend-saveproject-method-via-the-mutation-in-usequeries-ts-handles-errors-gracefully-and-shows-a-success-toast-on-completion",
+      "title": "Investigate and fix the failing 'Save' action for projects in SaveProjectModal.tsx and the related backend call. Ensure that saving a project correctly calls the backend saveProject method via the mutation in useQueries.ts, handles errors gracefully, and shows a success toast on completion.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Fix PDF export projections rendering and chart image export",
+  "new_feature_requests": [
+    {
+      "id": "AR-3",
+      "summary": "Fix the duplicate Equity Ratio and Interest Rate fields in the Inputs dashboard. These fields are defined in FinancingSection.tsx and should appear exactly once. Audit InputsTab.tsx and FinancingSection.tsx to identify where the duplication occurs (e.g., fields rendered twice or EconomicParametersSection also rendering them) and remove the duplicate instances.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "ProFi Mine",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

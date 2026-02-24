@@ -1,97 +1,80 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix PDF export projections rendering and chart image export",
+  "title": "Remove PDF export, fix Models Save action, and fix duplicate inputs",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Fix PDF export so model's financial projections (income statement, cash flow statement, summary KPIs, and charts) are fully rendered without truncation or missing sections",
+      "summary": "Remove PDF export option entirely from the Export tab",
       "acceptanceCriteria": [
-        "Exported PDF includes all rows of the IncomeStatementTable and CashFlowStatementTable (no content clipped by overflow/scroll containers).",
-        "Exported PDF includes the SummaryKPIsTable with all KPI values correctly displayed.",
-        "Exported PDF includes all three charts (CumulativeCashFlowChart, ProductionBarChart, CostBreakdownPieChart) rendered as visible graphics.",
-        "Print media CSS in index.css correctly expands scrollable containers so all content is visible in the print layout.",
-        "The usePdfExport hook triggers the print dialog only after all projections content is fully laid out and chart SVGs are rendered."
+        "The Export tab no longer displays a PDF export button or any PDF-related UI.",
+        "No PDF export functionality is triggered from any part of the application.",
+        "CSV export option remains intact and functional."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/index.css",
+          "path": "frontend/src/components/export/ExportTab.tsx",
           "operation": "modify",
-          "description": "Update print media queries to properly expand scrollable table containers (IncomeStatementTable and CashFlowStatementTable overflow containers) so all rows print without clipping. Add print rules to ensure chart containers render with appropriate dimensions and visibility. Remove any max-height or overflow-hidden constraints on .projections-tab descendant elements during print. Ensure all projections content (tables and charts) is visible and properly sized for print layout."
-        },
-        {
-          "path": "frontend/src/components/projections/IncomeStatementTable.tsx",
-          "operation": "modify",
-          "description": "Add print-specific class names or data attributes to the scrollable container div wrapping the income statement table rows. Ensure the overflow container expands fully in print media so all table rows are included in PDF export. The print CSS in index.css will target these classes to override scroll behavior."
-        },
-        {
-          "path": "frontend/src/components/projections/CashFlowStatementTable.tsx",
-          "operation": "modify",
-          "description": "Add print-specific class names or data attributes to the scrollable container div wrapping the cash flow statement table rows. Ensure the overflow container expands fully in print media so all table rows are included in PDF export. The print CSS in index.css will target these classes to override scroll behavior."
-        },
-        {
-          "path": "frontend/src/components/projections/SummaryKPIsTable.tsx",
-          "operation": "modify",
-          "description": "Verify the summary KPIs table layout is print-friendly with no overflow clipping. Add print-specific styling if necessary to ensure all KPI rows and values are visible in the PDF export. Ensure table structure is compatible with print media queries in index.css."
-        },
-        {
-          "path": "frontend/src/components/charts/CumulativeCashFlowChart.tsx",
-          "operation": "modify",
-          "description": "Add print-specific class or data attribute to the chart container to ensure it renders with visible dimensions in print media. Coordinate with index.css print rules to display the Recharts ResponsiveContainer and SVG elements properly during PDF export. Verify chart wrapper has appropriate height and width for print output."
-        },
-        {
-          "path": "frontend/src/components/charts/ProductionBarChart.tsx",
-          "operation": "modify",
-          "description": "Add print-specific class or data attribute to the chart container to ensure it renders with visible dimensions in print media. Coordinate with index.css print rules to display the Recharts ResponsiveContainer and SVG elements properly during PDF export. Verify chart wrapper has appropriate height and width for print output."
-        },
-        {
-          "path": "frontend/src/components/charts/CostBreakdownPieChart.tsx",
-          "operation": "modify",
-          "description": "Add print-specific class or data attribute to the chart container to ensure it renders with visible dimensions in print media. Coordinate with index.css print rules to display the Recharts ResponsiveContainer and SVG elements properly during PDF export. Verify chart wrapper has appropriate height and width for print output."
+          "description": "Remove the PDF export button/UI and any references to the usePdfExport hook. Keep only the CSV export functionality with its free-tier warnings and disabled states."
         },
         {
           "path": "frontend/src/hooks/usePdfExport.ts",
-          "operation": "modify",
-          "description": "Update the PDF export hook to introduce a delay before triggering window.print() to allow all projections content (tables and chart SVGs) to fully render and layout. Use requestAnimationFrame or setTimeout to ensure Recharts SVG elements are mounted in the DOM and table containers have expanded. Display a brief loading indicator or message while waiting for content to be ready. Preserve existing export limit checking and decrement logic. After the delay, call window.print() with user instructions as before."
+          "operation": "delete",
+          "description": "Delete the usePdfExport hook file entirely as it is no longer needed."
         },
         {
-          "path": "frontend/src/components/projections/ProjectionsTab.tsx",
+          "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Add a data attribute or wrapper class to the projections tab container that the print CSS in index.css can target to isolate print content. Ensure the component structure supports print media styling that expands tables and renders charts. No functional logic changes required, only structural markup to facilitate print layout."
+          "description": "Remove the @media print block and all print-specific styles that were used for PDF export (e.g., .print\\:hidden, .print\\:block, body print styles). Keep all other styles intact including the Tailwind base layers and theme CSS custom properties."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Fix chart image export functionality so each chart exports the actual chart SVG as a PNG, not the download button icon",
+      "summary": "Fix the failing 'Save' action for projects in SaveProjectModal",
       "acceptanceCriteria": [
-        "Clicking the export button on CumulativeCashFlowChart downloads a PNG file containing the cumulative cash flow line chart.",
-        "Clicking the export button on ProductionBarChart downloads a PNG file containing the production bar chart.",
-        "Clicking the export button on CostBreakdownPieChart downloads a PNG file containing the cost breakdown pie chart.",
-        "The exported PNG does not contain the download button icon or any UI chrome — only the chart graphic on a white background.",
-        "The useChartExport hook selects the SVG element from the chart container ref correctly, excluding button elements from the capture target.",
-        "Exported images render at 2x resolution as intended."
+        "Clicking 'Save' in the SaveProjectModal successfully persists the project to the backend.",
+        "A success toast notification is shown after a successful save.",
+        "An error toast or message is shown if the save fails.",
+        "No unhandled exceptions are thrown during the save flow."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useChartExport.ts",
+          "path": "frontend/src/components/project/SaveProjectModal.tsx",
           "operation": "modify",
-          "description": "Fix the SVG element selection logic to correctly identify the Recharts SVG element within the chart container ref, excluding any button elements or UI chrome. Currently the hook captures the download button icon instead of the chart. Update the querySelector or traversal logic to locate the actual chart SVG (likely a child of the ResponsiveContainer div rendered by Recharts). Ensure the selected SVG is the chart graphic, not any icon or button SVG. Verify the SVG-to-canvas conversion draws only the chart on a white background at 2x resolution. Preserve existing export limit checking and decrement logic."
+          "description": "Investigate and fix the handleSave function. Ensure it correctly calls the useSaveProject mutation from useQueries.ts, handles success with a toast notification, handles errors gracefully with error toast, and closes the modal on success. Verify that all required fields from the MiningProject interface are included when calling the backend saveProject method."
         },
         {
-          "path": "frontend/src/components/charts/CumulativeCashFlowChart.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Review the chart container structure and ensure the ref passed to useChartExport points to a wrapper element that contains the Recharts ResponsiveContainer but not the export button. Add a dedicated wrapper div for the chart SVG if necessary, separate from the button container. Ensure the hook can reliably query for the Recharts SVG element within the ref target. No functional logic changes to chart rendering required."
+          "description": "Review the useSaveProject mutation to ensure it correctly calls actor.saveProject with the full project object, properly handles the SaveProjectResult response, invalidates the 'projects' query key on success to refresh project lists, and throws descriptive errors on failure."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Fix duplicate Equity Ratio and Interest Rate fields in the Inputs dashboard",
+      "acceptanceCriteria": [
+        "Equity Ratio appears exactly once in the Inputs dashboard.",
+        "Interest Rate appears exactly once in the Inputs dashboard.",
+        "Both fields remain functional and correctly bound to the ProjectContext state.",
+        "No other input fields are accidentally removed or duplicated."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/inputs/InputsTab.tsx",
+          "operation": "modify",
+          "description": "Audit the component structure to identify where Equity Ratio and Interest Rate are rendered twice. Check if FinancingSection and EconomicParametersSection are both rendering these fields. Remove the duplicate renderings while ensuring each field appears exactly once in the appropriate section."
         },
         {
-          "path": "frontend/src/components/charts/ProductionBarChart.tsx",
+          "path": "frontend/src/components/inputs/FinancingSection.tsx",
           "operation": "modify",
-          "description": "Review the chart container structure and ensure the ref passed to useChartExport points to a wrapper element that contains the Recharts ResponsiveContainer but not the export button. Add a dedicated wrapper div for the chart SVG if necessary, separate from the button container. Ensure the hook can reliably query for the Recharts SVG element within the ref target. No functional logic changes to chart rendering required."
+          "description": "Verify that this component renders Equity Ratio and Interest Rate exactly once each. If duplicates exist within this file (e.g., fields rendered in multiple places), remove the duplicate instances while preserving the correct bindings to ProjectContext state."
         },
         {
-          "path": "frontend/src/components/charts/CostBreakdownPieChart.tsx",
+          "path": "frontend/src/components/inputs/EconomicParametersSection.tsx",
           "operation": "modify",
-          "description": "Review the chart container structure and ensure the ref passed to useChartExport points to a wrapper element that contains the Recharts ResponsiveContainer but not the export button. Add a dedicated wrapper div for the chart SVG if necessary, separate from the button container. Ensure the hook can reliably query for the Recharts SVG element within the ref target. No functional logic changes to chart rendering required."
+          "description": "Check if this section is incorrectly rendering Equity Ratio and Interest Rate fields. If they appear here, remove them as they should only be in FinancingSection. Ensure no other fields are affected."
         }
       ]
     }

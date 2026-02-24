@@ -1,12 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Fix two broken export features: PDF export not rendering financial projections correctly, and chart image export capturing the download button icon instead of the chart graphic.
+**Goal:** Remove PDF export, fix the project Save action, and eliminate duplicate input fields in the ProFi Mine application.
 
 **Planned changes:**
-- Update print media CSS so scrollable table containers expand fully, ensuring all rows of the income statement, cash flow, and KPI tables are visible in the exported PDF.
-- Fix the `usePdfExport` hook to trigger the print dialog only after all projections content and chart SVGs are fully rendered.
-- Fix the `useChartExport` hook to correctly target the Recharts SVG element within the chart container ref, excluding the export button from the capture target.
-- Ensure each chart (CumulativeCashFlowChart, ProductionBarChart, CostBreakdownPieChart) exports as a PNG containing only the chart graphic on a white background at 2x resolution.
+- Remove the PDF export button and all PDF-related UI from the Export tab, remove `usePdfExport` calls, and remove PDF print styles from `index.css`
+- Fix the failing Save action in `SaveProjectModal.tsx` so it correctly calls the backend `saveProject` mutation, shows a success toast on completion, and displays an error message on failure
+- Fix duplicate Equity Ratio and Interest Rate fields in the Inputs dashboard by auditing `InputsTab.tsx` and `FinancingSection.tsx` and removing the duplicate instances
 
-**User-visible outcome:** Users can export a complete PDF with all financial projection tables and charts fully rendered, and can download each chart as a PNG image showing the actual chart graphic rather than the download button icon.
+**User-visible outcome:** The Export tab only shows CSV export. Saving a project works correctly with appropriate feedback. The Inputs dashboard shows Equity Ratio and Interest Rate exactly once each.

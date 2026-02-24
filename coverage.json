@@ -1,72 +1,73 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-24T13:30:46.661Z",
+  "generatedAt": "2026-02-24T21:57:27.599Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
+    "total": 3,
     "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Fix the PDF export so that the model's financial projections (income statement table, cash flow statement table, summary KPIs, and charts) are fully and correctly rendered in the exported PDF. The current print-based export must capture all projections tab content, including scrollable table areas and chart elements, without truncation or missing sections.",
+        "summary": "Remove the PDF export option entirely from the Export tab. This includes removing the PDF download button/UI from ExportTab.tsx, removing or disabling any calls to usePdfExport, and removing the print styles from index.css that were used for PDF export.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/index.css",
-          "frontend/src/components/projections/IncomeStatementTable.tsx",
-          "frontend/src/components/projections/CashFlowStatementTable.tsx",
-          "frontend/src/components/projections/SummaryKPIsTable.tsx",
-          "frontend/src/components/charts/CumulativeCashFlowChart.tsx",
-          "frontend/src/components/charts/ProductionBarChart.tsx",
-          "frontend/src/components/charts/CostBreakdownPieChart.tsx",
+          "frontend/src/components/export/ExportTab.tsx",
           "frontend/src/hooks/usePdfExport.ts",
-          "frontend/src/components/projections/ProjectionsTab.tsx"
+          "frontend/src/index.css"
         ],
         "matchedFiles": [
-          "frontend/src/index.css",
-          "frontend/src/components/projections/IncomeStatementTable.tsx",
-          "frontend/src/components/projections/CashFlowStatementTable.tsx",
-          "frontend/src/components/charts/CumulativeCashFlowChart.tsx",
-          "frontend/src/components/charts/ProductionBarChart.tsx",
-          "frontend/src/components/charts/CostBreakdownPieChart.tsx",
-          "frontend/src/hooks/usePdfExport.ts"
+          "frontend/src/components/export/ExportTab.tsx",
+          "frontend/src/hooks/usePdfExport.ts",
+          "frontend/src/index.css"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Fix the chart image export functionality in useChartExport.ts so that each chart (CumulativeCashFlowChart, ProductionBarChart, CostBreakdownPieChart) exports the actual chart image as a PNG file. Currently the export captures the download button icon instead of the chart SVG. The hook must correctly target the Recharts SVG element within the chart container, not the export button itself.",
+        "summary": "Investigate and fix the failing 'Save' action for projects in SaveProjectModal.tsx and the related backend call. Ensure that saving a project correctly calls the backend saveProject method via the mutation in useQueries.ts, handles errors gracefully, and shows a success toast on completion.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useChartExport.ts",
-          "frontend/src/components/charts/CumulativeCashFlowChart.tsx",
-          "frontend/src/components/charts/ProductionBarChart.tsx",
-          "frontend/src/components/charts/CostBreakdownPieChart.tsx"
+          "frontend/src/components/project/SaveProjectModal.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useChartExport.ts",
-          "frontend/src/components/charts/CumulativeCashFlowChart.tsx",
-          "frontend/src/components/charts/ProductionBarChart.tsx",
-          "frontend/src/components/charts/CostBreakdownPieChart.tsx"
+          "frontend/src/components/project/SaveProjectModal.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Fix the duplicate Equity Ratio and Interest Rate fields in the Inputs dashboard. These fields are defined in FinancingSection.tsx and should appear exactly once. Audit InputsTab.tsx and FinancingSection.tsx to identify where the duplication occurs (e.g., fields rendered twice or EconomicParametersSection also rendering them) and remove the duplicate instances.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/components/inputs/InputsTab.tsx",
+          "frontend/src/components/inputs/FinancingSection.tsx",
+          "frontend/src/components/inputs/EconomicParametersSection.tsx"
+        ],
+        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
-    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/charts/CostBreakdownPieChart.tsx",
-    "frontend/src/components/charts/CumulativeCashFlowChart.tsx",
-    "frontend/src/components/charts/ProductionBarChart.tsx",
-    "frontend/src/components/projections/CashFlowStatementTable.tsx",
-    "frontend/src/components/projections/IncomeStatementTable.tsx",
-    "frontend/src/hooks/useChartExport.ts",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/export/ExportTab.tsx",
+    "frontend/src/components/inputs/CostStructureSection.tsx",
+    "frontend/src/components/project/ProjectListModal.tsx",
+    "frontend/src/components/project/SaveProjectModal.tsx",
+    "frontend/src/contexts/ProjectContext.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/usePdfExport.ts",
+    "frontend/src/hooks/useQueries.ts",
     "frontend/src/index.css",
     "project_state.json",
     "scratch/component-selection.json",

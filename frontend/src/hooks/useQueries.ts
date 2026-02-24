@@ -1,8 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import { useInternetIdentity } from './useInternetIdentity';
 import type { UserProfile, MiningProject, StripeConfiguration } from '../backend';
-import type { ProjectInputs, FinancialCalculations } from '../utils/calculations';
 
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -39,58 +37,33 @@ export function useSaveCallerUserProfile() {
   });
 }
 
-export function useLoadProjects() {
+export function useGetProjects() {
   const { actor, isFetching: actorFetching } = useActor();
 
   return useQuery<MiningProject[]>({
     queryKey: ['projects'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      const projects = await actor.getSortedProjects('lastModified');
-      return projects;
+      if (!actor) return [];
+      return actor.getSortedProjects('lastModified');
     },
     enabled: !!actor && !actorFetching,
   });
 }
 
-export function useLoadProject() {
+export function useSaveProject() {
   const { actor } = useActor();
-
-  return useMutation({
-    mutationFn: async (id: Uint8Array) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getProject(id);
-    },
-  });
-}
-
-export function useSaveProjectMutation() {
-  const { actor } = useActor();
-  const { identity } = useInternetIdentity();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      id,
-      name,
-      inputs,
-      calculations,
-    }: {
-      id: Uint8Array;
-      name: string;
-      inputs: ProjectInputs;
-      calculations: FinancialCalculations;
-    }) => {
+    mutationFn: async (project: MiningProject) => {
       if (!actor) throw new Error('Actor not available');
-      if (!identity) throw new Error('User not authenticated');
-
-      // Note: The backend doesn't have a saveProject method
-      // This is a placeholder that will need backend implementation
-      // For now, we'll throw an error to indicate this needs backend support
-      throw new Error('saveProject backend method not implemented. Please add saveProject(project: MiningProject) to the backend.');
+      const result = await actor.saveProject(project);
+      if (result.status.__kind__ === 'error') {
+        throw new Error(result.status.error);
+      }
+      return result;
     },
     onSuccess: () => {
-      // Invalidate both projects and user profile to update usage count
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
     },
@@ -112,13 +85,26 @@ export function useDeleteProject() {
   });
 }
 
+export function useCanExport() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<boolean>({
+    queryKey: ['canExport'],
+    queryFn: async () => {
+      if (!actor) return false;
+      return actor.canExport();
+    },
+    enabled: !!actor && !actorFetching,
+  });
+}
+
 export function useIsStripeConfigured() {
   const { actor, isFetching: actorFetching } = useActor();
 
   return useQuery<boolean>({
-    queryKey: ['stripeConfigured'],
+    queryKey: ['isStripeConfigured'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
+      if (!actor) return false;
       return actor.isStripeConfigured();
     },
     enabled: !!actor && !actorFetching,
@@ -135,20 +121,20 @@ export function useSetStripeConfiguration() {
       await actor.setStripeConfiguration(config);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stripeConfigured'] });
+      queryClient.invalidateQueries({ queryKey: ['isStripeConfigured'] });
     },
   });
 }
 
-export function useCanExport() {
-  const { actor } = useActor();
+export function useGetSubscriptionTierInfo() {
+  const { actor, isFetching: actorFetching } = useActor();
 
-  return useQuery<boolean>({
-    queryKey: ['canExport'],
+  return useQuery({
+    queryKey: ['subscriptionTierInfo'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.canExport();
+      if (!actor) return [];
+      return actor.getSubscriptionTierInfo();
     },
-    enabled: !!actor,
+    enabled: !!actor && !actorFetching,
   });
 }

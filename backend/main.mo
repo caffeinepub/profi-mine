@@ -14,9 +14,6 @@ import OutCall "http-outcalls/outcall";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
-
-// Annual export counter constant
-
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -47,7 +44,7 @@ actor {
     max : Float;
   };
 
-  type MiningProject = {
+  public type MiningProject = {
     id : Blob;
     name : Text;
     owner : Principal;
@@ -436,6 +433,55 @@ actor {
           exportsRemainingAnnual = newExports;
         };
         userProfiles.add(principalId, updatedProfile);
+      };
+    };
+  };
+
+  public type SaveProjectResult = {
+    projectId : Blob;
+    status : ApiResult;
+    timestamp : Int;
+  };
+
+  public type ApiResult = {
+    #success;
+    #error : Text;
+  };
+
+  public shared ({ caller }) func saveProject(project : MiningProject) : async SaveProjectResult {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      return {
+        projectId = project.id;
+        status = #error("Unauthorized: Only users can save projects");
+        timestamp = Time.now();
+      };
+    };
+
+    let existingProject = projects.get(project.id);
+    switch (existingProject) {
+      case (?existing) {
+        if (existing.owner == caller or AccessControl.isAdmin(accessControlState, caller)) {
+          projects.add(project.id, project);
+          {
+            projectId = project.id;
+            status = #success;
+            timestamp = Time.now();
+          };
+        } else {
+          {
+            projectId = project.id;
+            status = #error("Unauthorized: Can only update your own projects");
+            timestamp = Time.now();
+          };
+        };
+      };
+      case (null) {
+        projects.add(project.id, project);
+        {
+          projectId = project.id;
+          status = #success;
+          timestamp = Time.now();
+        };
       };
     };
   };

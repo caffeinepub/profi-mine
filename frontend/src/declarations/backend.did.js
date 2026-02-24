@@ -83,6 +83,15 @@ export const StripeSessionStatus = IDL.Variant({
   }),
   'failed' : IDL.Record({ 'error' : IDL.Text }),
 });
+export const ApiResult = IDL.Variant({
+  'error' : IDL.Text,
+  'success' : IDL.Null,
+});
+export const SaveProjectResult = IDL.Record({
+  'status' : ApiResult,
+  'projectId' : IDL.Vec(IDL.Nat8),
+  'timestamp' : IDL.Int,
+});
 export const StripeConfiguration = IDL.Record({
   'allowedCountries' : IDL.Vec(IDL.Text),
   'secretKey' : IDL.Text,
@@ -158,6 +167,7 @@ export const idlService = IDL.Service({
   'isStripeConfigured' : IDL.Func([], [IDL.Bool], ['query']),
   'refreshProjects' : IDL.Func([], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'saveProject' : IDL.Func([MiningProject], [SaveProjectResult], []),
   'setStripeConfiguration' : IDL.Func([StripeConfiguration], [], []),
   'transform' : IDL.Func(
       [TransformationInput],
@@ -244,6 +254,12 @@ export const idlFactory = ({ IDL }) => {
     }),
     'failed' : IDL.Record({ 'error' : IDL.Text }),
   });
+  const ApiResult = IDL.Variant({ 'error' : IDL.Text, 'success' : IDL.Null });
+  const SaveProjectResult = IDL.Record({
+    'status' : ApiResult,
+    'projectId' : IDL.Vec(IDL.Nat8),
+    'timestamp' : IDL.Int,
+  });
   const StripeConfiguration = IDL.Record({
     'allowedCountries' : IDL.Vec(IDL.Text),
     'secretKey' : IDL.Text,
@@ -316,6 +332,7 @@ export const idlFactory = ({ IDL }) => {
     'isStripeConfigured' : IDL.Func([], [IDL.Bool], ['query']),
     'refreshProjects' : IDL.Func([], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'saveProject' : IDL.Func([MiningProject], [SaveProjectResult], []),
     'setStripeConfiguration' : IDL.Func([StripeConfiguration], [], []),
     'transform' : IDL.Func(
         [TransformationInput],

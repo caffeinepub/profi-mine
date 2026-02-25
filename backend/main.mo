@@ -13,7 +13,9 @@ import Principal "mo:core/Principal";
 import OutCall "http-outcalls/outcall";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -44,7 +46,7 @@ actor {
     max : Float;
   };
 
-  public type MiningProject = {
+  type MiningProject = {
     id : Blob;
     name : Text;
     owner : Principal;
@@ -81,6 +83,15 @@ actor {
     message : Text;
   };
 
+  // ACTOR STATE
+  let projects = Map.empty<Blob, MiningProject>();
+  let sensitivityRanges = Map.empty<Text, SensitivityRange>();
+  let userProfiles = Map.empty<Principal, UserProfile>();
+  let persistentLog = Map.empty<Int, LogEntry>();
+  var stripeConfig : ?Stripe.StripeConfiguration = null;
+
+  // ACTOR STATE END
+
   module ProjectComparisons {
     public func compareByName(a : MiningProject, b : MiningProject) : Order.Order {
       Text.compare(a.name, b.name);
@@ -94,11 +105,6 @@ actor {
       Int.compare(a.lastModified, b.lastModified);
     };
   };
-
-  let projects = Map.empty<Blob, MiningProject>();
-  let sensitivityRanges = Map.empty<Text, SensitivityRange>();
-  let userProfiles = Map.empty<Principal, UserProfile>();
-  let persistentLog = Map.empty<Int, LogEntry>();
 
   func log(message : Text) {
     persistentLog.add(Time.now(), { timestamp = Time.now(); message });
@@ -178,8 +184,6 @@ actor {
   };
 
   // Subscription management and Stripe integration
-  var stripeConfig : ?Stripe.StripeConfiguration = null;
-
   public shared ({ caller }) func setStripeConfiguration(config : Stripe.StripeConfiguration) : async () {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can set Stripe configuration");
@@ -395,6 +399,9 @@ actor {
   };
 
   public shared ({ caller }) func canExport() : async Bool {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can check export availability");
+    };
     switch (userProfiles.get(caller)) {
       case (null) { false };
       case (?profile) { profile.exportsRemainingAnnual > 0 };
@@ -402,6 +409,9 @@ actor {
   };
 
   public shared ({ caller }) func decrementExportCount() : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can decrement export count");
+    };
     let profile = getOrResetUserProfile(caller);
 
     if (profile.exportsRemainingAnnual <= 0) {
@@ -437,51 +447,22 @@ actor {
     };
   };
 
-  public type SaveProjectResult = {
-    projectId : Blob;
-    status : ApiResult;
-    timestamp : Int;
-  };
-
-  public type ApiResult = {
-    #success;
-    #error : Text;
-  };
-
-  public shared ({ caller }) func saveProject(project : MiningProject) : async SaveProjectResult {
+  public shared ({ caller }) func saveProject(project : MiningProject) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      return {
-        projectId = project.id;
-        status = #error("Unauthorized: Only users can save projects");
-        timestamp = Time.now();
-      };
+      Runtime.trap("Unauthorized: Only users can save projects");
     };
 
-    let existingProject = projects.get(project.id);
-    switch (existingProject) {
-      case (?existing) {
-        if (existing.owner == caller or AccessControl.isAdmin(accessControlState, caller)) {
-          projects.add(project.id, project);
-          {
-            projectId = project.id;
-            status = #success;
-            timestamp = Time.now();
-          };
-        } else {
-          {
-            projectId = project.id;
-            status = #error("Unauthorized: Can only update your own projects");
-            timestamp = Time.now();
-          };
+    if (project.owner != caller and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only save your own projects");
+    };
+
+    switch (projects.get(project.id)) {
+      case (null) { projects.add(project.id, project) };
+      case (?existingProject) {
+        if (existingProject.owner != caller and not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("Unauthorized: Can only update your own projects");
         };
-      };
-      case (null) {
         projects.add(project.id, project);
-        {
-          projectId = project.id;
-          status = #success;
-          timestamp = Time.now();
-        };
       };
     };
   };

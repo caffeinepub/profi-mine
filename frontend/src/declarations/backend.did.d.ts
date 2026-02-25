@@ -10,8 +10,6 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
-export type ApiResult = { 'error' : string } |
-  { 'success' : null };
 export interface ExportLimit {
   'CSV_AND_PDF_COMBINED_MAX' : bigint,
   'MAX_OPERATIONS_PDF_AND_CSV' : bigint,
@@ -46,11 +44,6 @@ export interface MiningProject {
   'oreGrade' : number,
   'oreReserves' : number,
   'annualRevenue' : [] | [number],
-}
-export interface SaveProjectResult {
-  'status' : ApiResult,
-  'projectId' : Uint8Array,
-  'timestamp' : bigint,
 }
 export interface SensitivityRange { 'max' : number, 'min' : number }
 export interface ShoppingItem {
@@ -125,7 +118,7 @@ export interface _SERVICE {
   'isStripeConfigured' : ActorMethod<[], boolean>,
   'refreshProjects' : ActorMethod<[], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
-  'saveProject' : ActorMethod<[MiningProject], SaveProjectResult>,
+  'saveProject' : ActorMethod<[MiningProject], undefined>,
   'setStripeConfiguration' : ActorMethod<[StripeConfiguration], undefined>,
   'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
   'updateSensitivityRange' : ActorMethod<[string, SensitivityRange], undefined>,

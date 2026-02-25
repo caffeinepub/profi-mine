@@ -1,31 +1,35 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-24T21:57:27.595Z",
-  "summary": "The diff addresses all three requirements: REQ-1 (PDF export removal), REQ-2 (Save project fix), and REQ-3 (duplicate field fix). REQ-1 and REQ-2 appear fully implemented. REQ-3 is partially evidenced — the duplicate fix is mentioned in file summaries but FinancingSection.tsx and InputsTab.tsx are not directly shown in the diff, making it impossible to confirm the duplication was actually removed from source.",
+  "generatedAt": "2026-02-25T10:42:54.731Z",
+  "summary": "The diff addresses both REQ-1 (remove PDF export UI from ExportTab.tsx) and REQ-2 (fix Save project mutation). REQ-1 appears fully implemented — ExportTab.tsx no longer contains PDF UI elements and only shows CSV export. REQ-2 shows a fully implemented saveProject mutation in useQueries.ts with proper field mapping. However, there is no direct evidence in the diff of success/error toast handling wired up in DashboardHeader.tsx or ProjectContext.tsx for the save action, which is part of REQ-2's acceptance criteria.",
   "missing_requirements": [
     {
-      "id": "REQ-3",
-      "requirement": "Fix the duplicate Equity Ratio and Interest Rate fields in the Inputs dashboard by auditing InputsTab.tsx and FinancingSection.tsx and removing duplicate instances.",
-      "reason": "Neither InputsTab.tsx nor FinancingSection.tsx appear in the modified files list. The frontend-file-summaries.txt mentions the fix only indirectly. Without seeing changes to these files, it cannot be confirmed that the duplicate fields were actually removed from source code.",
+      "id": "REQ-2",
+      "requirement": "A success toast is displayed after a successful save, and an error toast is displayed if the save fails with a meaningful message.",
+      "reason": "The diff shows the useSaveProjectMutation hook in useQueries.ts but does not show changes to DashboardHeader.tsx or ProjectContext.tsx where the toast notifications would be wired up on save success/failure. The frontend-file-summaries.txt mentions DashboardHeader has save functionality but no diff content confirms toast calls were added.",
       "evidence": [
-        "frontend-file-summaries.txt"
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/components/dashboard/DashboardHeader.tsx"
       ]
     }
   ],
-  "hallucinated_features": [],
-  "confidence": 0.72,
+  "hallucinated_features": [
+    {
+      "description": "A backend migration module (migration.mo) was added with empty OldActor and NewActor types and a trivial run function.",
+      "reason": "Neither REQ-1 nor REQ-2 requested any backend migration scaffolding. The build request focused solely on frontend UI removal and fixing the save mutation flow.",
+      "evidence": [
+        "backend/migration.mo"
+      ]
+    }
+  ],
+  "confidence": 0.65,
   "changed_files": [
     "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
     "frontend/src/components/export/ExportTab.tsx",
-    "frontend/src/components/inputs/CostStructureSection.tsx",
-    "frontend/src/components/project/ProjectListModal.tsx",
-    "frontend/src/components/project/SaveProjectModal.tsx",
-    "frontend/src/contexts/ProjectContext.tsx",
-    "frontend/src/hooks/usePdfExport.ts",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/index.css",
     "project_state.json"
   ]
 }

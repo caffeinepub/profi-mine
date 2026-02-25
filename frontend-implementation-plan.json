@@ -1,80 +1,48 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Remove PDF export, fix Models Save action, and fix duplicate inputs",
+  "title": "Remove PDF export option and fix Save project action",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Remove PDF export option entirely from the Export tab",
+      "summary": "Remove PDF export UI elements from ExportTab while preserving CSV export functionality",
       "acceptanceCriteria": [
-        "The Export tab no longer displays a PDF export button or any PDF-related UI.",
-        "No PDF export functionality is triggered from any part of the application.",
-        "CSV export option remains intact and functional."
+        "The Export tab no longer shows a PDF download button or any PDF-related UI.",
+        "CSV export option remains visible and functional.",
+        "No console errors related to the removed PDF elements."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/export/ExportTab.tsx",
           "operation": "modify",
-          "description": "Remove the PDF export button/UI and any references to the usePdfExport hook. Keep only the CSV export functionality with its free-tier warnings and disabled states."
-        },
-        {
-          "path": "frontend/src/hooks/usePdfExport.ts",
-          "operation": "delete",
-          "description": "Delete the usePdfExport hook file entirely as it is no longer needed."
-        },
-        {
-          "path": "frontend/src/index.css",
-          "operation": "modify",
-          "description": "Remove the @media print block and all print-specific styles that were used for PDF export (e.g., .print\\:hidden, .print\\:block, body print styles). Keep all other styles intact including the Tailwind base layers and theme CSS custom properties."
+          "description": "Remove all PDF export UI elements including the PDF download button, description text, and limit indicator. Keep only the CSV export section visible. Remove any imports or references to usePdfExport hook. Ensure the remaining CSV export UI is properly styled and functional without layout shifts from the removal."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Fix the failing 'Save' action for projects in SaveProjectModal",
+      "summary": "Investigate and fix the Save project action to successfully persist projects to the backend",
       "acceptanceCriteria": [
-        "Clicking 'Save' in the SaveProjectModal successfully persists the project to the backend.",
-        "A success toast notification is shown after a successful save.",
-        "An error toast or message is shown if the save fails.",
-        "No unhandled exceptions are thrown during the save flow."
+        "Clicking the Save button in DashboardHeader successfully calls the backend save endpoint without errors.",
+        "A success toast is displayed after a successful save.",
+        "An error toast is displayed if the save fails, with a meaningful message.",
+        "The saved project can be subsequently loaded via the Load modal."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/project/SaveProjectModal.tsx",
+          "path": "frontend/src/contexts/ProjectContext.tsx",
           "operation": "modify",
-          "description": "Investigate and fix the handleSave function. Ensure it correctly calls the useSaveProject mutation from useQueries.ts, handles success with a toast notification, handles errors gracefully with error toast, and closes the modal on success. Verify that all required fields from the MiningProject interface are included when calling the backend saveProject method."
+          "description": "Review and fix the saveProject mutation logic. Ensure the project state is correctly serialized before calling the backend saveProject method. Verify that all required MiningProject fields (id, owner, name, dates, financial parameters) are properly populated. Add error handling to catch and log any serialization or validation issues. Ensure the mutation onSuccess callback shows a success toast and onError shows an error toast with the error message."
         },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Review the useSaveProject mutation to ensure it correctly calls actor.saveProject with the full project object, properly handles the SaveProjectResult response, invalidates the 'projects' query key on success to refresh project lists, and throws descriptive errors on failure."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Fix duplicate Equity Ratio and Interest Rate fields in the Inputs dashboard",
-      "acceptanceCriteria": [
-        "Equity Ratio appears exactly once in the Inputs dashboard.",
-        "Interest Rate appears exactly once in the Inputs dashboard.",
-        "Both fields remain functional and correctly bound to the ProjectContext state.",
-        "No other input fields are accidentally removed or duplicated."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/inputs/InputsTab.tsx",
-          "operation": "modify",
-          "description": "Audit the component structure to identify where Equity Ratio and Interest Rate are rendered twice. Check if FinancingSection and EconomicParametersSection are both rendering these fields. Remove the duplicate renderings while ensuring each field appears exactly once in the appropriate section."
+          "description": "Inspect the saveProject mutation implementation. Verify the actor.saveProject call is correctly awaiting the backend response. Ensure proper error propagation from the backend to the UI. Add detailed error logging to identify why saves might fail (e.g., missing fields, type mismatches, backend errors). Confirm the mutation properly invalidates the projects query cache on success to reflect the saved project in the Load modal."
         },
         {
-          "path": "frontend/src/components/inputs/FinancingSection.tsx",
+          "path": "frontend/src/components/dashboard/DashboardHeader.tsx",
           "operation": "modify",
-          "description": "Verify that this component renders Equity Ratio and Interest Rate exactly once each. If duplicates exist within this file (e.g., fields rendered in multiple places), remove the duplicate instances while preserving the correct bindings to ProjectContext state."
-        },
-        {
-          "path": "frontend/src/components/inputs/EconomicParametersSection.tsx",
-          "operation": "modify",
-          "description": "Check if this section is incorrectly rendering Equity Ratio and Interest Rate fields. If they appear here, remove them as they should only be in FinancingSection. Ensure no other fields are affected."
+          "description": "Review the Save button click handler to ensure it correctly triggers the saveProject mutation from ProjectContext. Verify the button shows appropriate loading state during save operations. Ensure any pre-save validation (e.g., checking if a project name exists) is in place. Add error boundary handling if the save operation throws synchronously."
         }
       ]
     }

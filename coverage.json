@@ -1,58 +1,44 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-24T21:57:27.599Z",
+  "generatedAt": "2026-02-25T10:42:54.734Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
+    "total": 2,
     "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Remove the PDF export option entirely from the Export tab. This includes removing the PDF download button/UI from ExportTab.tsx, removing or disabling any calls to usePdfExport, and removing the print styles from index.css that were used for PDF export.",
+        "summary": "Remove the PDF export option from the Export tab. The CSV export option should remain. The PDF-related UI elements (button, description, limit indicator) must be fully removed from ExportTab.tsx. The usePdfExport hook and any print-related CSS in index.css may be left in place but must no longer be surfaced in the UI.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/export/ExportTab.tsx",
-          "frontend/src/hooks/usePdfExport.ts",
-          "frontend/src/index.css"
+          "frontend/src/components/export/ExportTab.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/export/ExportTab.tsx",
-          "frontend/src/hooks/usePdfExport.ts",
-          "frontend/src/index.css"
+          "frontend/src/components/export/ExportTab.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Investigate and fix the failing 'Save' action for projects in SaveProjectModal.tsx and the related backend call. Ensure that saving a project correctly calls the backend saveProject method via the mutation in useQueries.ts, handles errors gracefully, and shows a success toast on completion.",
+        "summary": "Fix the 'Save' project action in DashboardHeader. Investigate the saveProject mutation flow in ProjectContext.tsx and useQueries.ts (the backend save call), identify why saving fails, and correct it so that clicking Save successfully persists the current project to the backend and shows a success toast.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/project/SaveProjectModal.tsx",
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/contexts/ProjectContext.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/dashboard/DashboardHeader.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/project/SaveProjectModal.tsx",
           "frontend/src/hooks/useQueries.ts"
         ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Fix the duplicate Equity Ratio and Interest Rate fields in the Inputs dashboard. These fields are defined in FinancingSection.tsx and should appear exactly once. Audit InputsTab.tsx and FinancingSection.tsx to identify where the duplication occurs (e.g., fields rendered twice or EconomicParametersSection also rendering them) and remove the duplicate instances.",
-        "status": "missing",
-        "plannedFiles": [
-          "frontend/src/components/inputs/InputsTab.tsx",
-          "frontend/src/components/inputs/FinancingSection.tsx",
-          "frontend/src/components/inputs/EconomicParametersSection.tsx"
-        ],
-        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
@@ -60,15 +46,9 @@
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
     "frontend/src/components/export/ExportTab.tsx",
-    "frontend/src/components/inputs/CostStructureSection.tsx",
-    "frontend/src/components/project/ProjectListModal.tsx",
-    "frontend/src/components/project/SaveProjectModal.tsx",
-    "frontend/src/contexts/ProjectContext.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/usePdfExport.ts",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/index.css",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

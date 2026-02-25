@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
+import { useInternetIdentity } from './useInternetIdentity';
 import type { UserProfile, MiningProject, StripeConfiguration } from '../backend';
+import type { ProjectInputs, FinancialCalculations } from '../utils/calculations';
 
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -37,35 +39,134 @@ export function useSaveCallerUserProfile() {
   });
 }
 
-export function useGetProjects() {
+export function useLoadProjects() {
   const { actor, isFetching: actorFetching } = useActor();
 
   return useQuery<MiningProject[]>({
     queryKey: ['projects'],
     queryFn: async () => {
-      if (!actor) return [];
-      return actor.getSortedProjects('lastModified');
+      if (!actor) throw new Error('Actor not available');
+      const projects = await actor.getSortedProjects('lastModified');
+      return projects;
     },
     enabled: !!actor && !actorFetching,
   });
 }
 
-export function useSaveProject() {
+export function useLoadProject() {
   const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async (id: Uint8Array) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getProject(id);
+    },
+  });
+}
+
+export function useSaveProjectMutation() {
+  const { actor } = useActor();
+  const { identity } = useInternetIdentity();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (project: MiningProject) => {
+    mutationFn: async ({
+      id,
+      name,
+      inputs,
+      calculations,
+    }: {
+      id: Uint8Array;
+      name: string;
+      inputs: ProjectInputs;
+      calculations: FinancialCalculations;
+    }) => {
       if (!actor) throw new Error('Actor not available');
-      const result = await actor.saveProject(project);
-      if (result.status.__kind__ === 'error') {
-        throw new Error(result.status.error);
+      if (!identity) throw new Error('User not authenticated');
+
+      const principal = identity.getPrincipal();
+      const now = BigInt(Date.now()) * BigInt(1_000_000); // nanoseconds
+
+      // Derive single-value fields from arrays (use averages)
+      const avgRomTonnage =
+        inputs.romTonnageSchedule.length > 0
+          ? inputs.romTonnageSchedule.reduce((a, b) => a + b, 0) / inputs.romTonnageSchedule.length
+          : 0;
+      const avgCommodityPrice =
+        inputs.commodityPrices.length > 0
+          ? inputs.commodityPrices.reduce((a, b) => a + b, 0) / inputs.commodityPrices.length
+          : 0;
+
+      // Compute average yearly values from calculations
+      const years = calculations.yearlyData.length;
+      const avgAnnualProduction =
+        years > 0
+          ? calculations.yearlyData.reduce((s, d) => s + d.production, 0) / years
+          : undefined;
+      const avgAnnualRevenue =
+        years > 0
+          ? calculations.yearlyData.reduce((s, d) => s + d.revenue, 0) / years
+          : undefined;
+      const avgAnnualOpex =
+        years > 0
+          ? calculations.yearlyData.reduce((s, d) => s + d.opex, 0) / years
+          : undefined;
+
+      const project: MiningProject = {
+        id,
+        name,
+        owner: principal,
+        creationDate: now,
+        lastModified: now,
+        oreReserves: inputs.oreReserves,
+        romTonnage: avgRomTonnage,
+        oreGrade: inputs.oreGrade,
+        recoveryRate: inputs.recoveryRate / 100,
+        commodityPrice: avgCommodityPrice,
+        miningCost: inputs.miningCost,
+        processingCost: inputs.processingCost,
+        gAndACost: inputs.gAndACost,
+        strippingRatio: inputs.strippingRatio,
+        depreciation: 0,
+        capex: inputs.initialCapex,
+        discountRate: inputs.discountRate / 100,
+        averageTaxRate: inputs.taxRate / 100,
+        lom: calculations.lom,
+        annualProduction: avgAnnualProduction,
+        annualRevenue: avgAnnualRevenue,
+        annualOpex: avgAnnualOpex,
+        ebitda: calculations.avgEbitda,
+        ocf:
+          years > 0
+            ? calculations.yearlyData.reduce((s, d) => s + d.ocf, 0) / years
+            : undefined,
+        fcf:
+          years > 0
+            ? calculations.yearlyData.reduce((s, d) => s + d.fcf, 0) / years
+            : undefined,
+        npv: calculations.npv,
+        roi: calculations.roi,
+        paybackPeriod: calculations.paybackPeriod,
+      };
+
+      await actor.saveProject(project);
+
+      // Increment modelsCreatedAnnual in the user profile
+      const currentProfile = await actor.getCallerUserProfile();
+      if (currentProfile) {
+        const updatedProfile: UserProfile = {
+          ...currentProfile,
+          modelsCreatedAnnual: currentProfile.modelsCreatedAnnual + BigInt(1),
+        };
+        await actor.saveCallerUserProfile(updatedProfile);
       }
-      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+    onError: (error: Error) => {
+      console.error('Save project error:', error);
     },
   });
 }
@@ -85,26 +186,13 @@ export function useDeleteProject() {
   });
 }
 
-export function useCanExport() {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  return useQuery<boolean>({
-    queryKey: ['canExport'],
-    queryFn: async () => {
-      if (!actor) return false;
-      return actor.canExport();
-    },
-    enabled: !!actor && !actorFetching,
-  });
-}
-
 export function useIsStripeConfigured() {
   const { actor, isFetching: actorFetching } = useActor();
 
   return useQuery<boolean>({
-    queryKey: ['isStripeConfigured'],
+    queryKey: ['stripeConfigured'],
     queryFn: async () => {
-      if (!actor) return false;
+      if (!actor) throw new Error('Actor not available');
       return actor.isStripeConfigured();
     },
     enabled: !!actor && !actorFetching,
@@ -121,20 +209,20 @@ export function useSetStripeConfiguration() {
       await actor.setStripeConfiguration(config);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['isStripeConfigured'] });
+      queryClient.invalidateQueries({ queryKey: ['stripeConfigured'] });
     },
   });
 }
 
-export function useGetSubscriptionTierInfo() {
-  const { actor, isFetching: actorFetching } = useActor();
+export function useCanExport() {
+  const { actor } = useActor();
 
-  return useQuery({
-    queryKey: ['subscriptionTierInfo'],
+  return useQuery<boolean>({
+    queryKey: ['canExport'],
     queryFn: async () => {
-      if (!actor) return [];
-      return actor.getSubscriptionTierInfo();
+      if (!actor) throw new Error('Actor not available');
+      return actor.canExport();
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor,
   });
 }

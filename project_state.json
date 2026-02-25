@@ -1,43 +1,30 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Financial modeling app with an Inputs dashboard. Removing PDF export, fixing Models Save action, and fixing duplicate Equity Ratio and Interest Rate fields in the Inputs dashboard.",
+  "summary": "New project",
   "architectural_notes": [],
-  "known_issues": [
-    "Models 'Save' action is failing",
-    "Equity Ratio and Interest Rate are duplicated in the Inputs dashboard"
-  ],
+  "known_issues": [],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-remove-the-pdf-export-option-entirely-from-the-export-tab-this-includes-removing-the-pdf-download-button-ui-from-exporttab-tsx-removing-or-disabling-any-calls-to-usepdfexport-and-removing-the-print-styles-from-index-css-that-were-used-for-pdf-export",
-      "title": "Remove the PDF export option entirely from the Export tab. This includes removing the PDF download button/UI from ExportTab.tsx, removing or disabling any calls to usePdfExport, and removing the print styles from index.css that were used for PDF export.",
+      "id": "feature-remove-the-pdf-export-option-from-the-export-tab-the-csv-export-option-should-remain-the-pdf-related-ui-elements-button-description-limit-indicator-must-be-fully-removed-from-exporttab-tsx-the-usepdfexport-hook-and-any-print-related-css-in-index-css-may-be-left-in-place-but-must-no-longer-be-surfaced-in-the-ui",
+      "title": "Remove the PDF export option from the Export tab. The CSV export option should remain. The PDF-related UI elements (button, description, limit indicator) must be fully removed from ExportTab.tsx. The usePdfExport hook and any print-related CSS in index.css may be left in place but must no longer be surfaced in the UI.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-investigate-and-fix-the-failing-save-action-for-projects-in-saveprojectmodal-tsx-and-the-related-backend-call-ensure-that-saving-a-project-correctly-calls-the-backend-saveproject-method-via-the-mutation-in-usequeries-ts-handles-errors-gracefully-and-shows-a-success-toast-on-completion",
-      "title": "Investigate and fix the failing 'Save' action for projects in SaveProjectModal.tsx and the related backend call. Ensure that saving a project correctly calls the backend saveProject method via the mutation in useQueries.ts, handles errors gracefully, and shows a success toast on completion.",
+      "id": "feature-fix-the-save-project-action-in-dashboardheader-investigate-the-saveproject-mutation-flow-in-projectcontext-tsx-and-usequeries-ts-the-backend-save-call-identify-why-saving-fails-and-correct-it-so-that-clicking-save-successfully-persists-the-current-project-to-the-backend-and-shows-a-success-toast",
+      "title": "Fix the 'Save' project action in DashboardHeader. Investigate the saveProject mutation flow in ProjectContext.tsx and useQueries.ts (the backend save call), identify why saving fails, and correct it so that clicking Save successfully persists the current project to the backend and shows a success toast.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-3",
-      "summary": "Fix the duplicate Equity Ratio and Interest Rate fields in the Inputs dashboard. These fields are defined in FinancingSection.tsx and should appear exactly once. Audit InputsTab.tsx and FinancingSection.tsx to identify where the duplication occurs (e.g., fields rendered twice or EconomicParametersSection also rendering them) and remove the duplicate instances.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "status": "pending"
-    }
-  ],
-  "gameProjectType": "none",
-  "projectName": "ProFi Mine",
+  "new_feature_requests": [],
+  "projectName": "Remove PDF export option and fix Save project action",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

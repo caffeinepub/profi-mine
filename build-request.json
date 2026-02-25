@@ -1,76 +1,54 @@
 {
   "kind": "build_request",
-  "title": "Remove PDF export, fix Models Save action, and fix duplicate inputs",
-  "projectName": "ProFi Mine",
-  "priority": "high",
+  "title": "Remove PDF export option and fix Save project action",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Remove the PDF export option entirely from the Export tab. This includes removing the PDF download button/UI from ExportTab.tsx, removing or disabling any calls to usePdfExport, and removing the print styles from index.css that were used for PDF export.",
+      "text": "Remove the PDF export option from the Export tab. The CSV export option should remain. The PDF-related UI elements (button, description, limit indicator) must be fully removed from ExportTab.tsx. The usePdfExport hook and any print-related CSS in index.css may be left in place but must no longer be surfaced in the UI.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-8"
         ],
         "quotes": [
           "Remove PDF export option."
         ]
       },
       "acceptanceCriteria": [
-        "The Export tab no longer displays a PDF export button or any PDF-related UI.",
-        "No PDF export functionality is triggered from any part of the application.",
-        "CSV export option remains intact and functional."
+        "The Export tab no longer shows a PDF download button or any PDF-related UI.",
+        "CSV export option remains visible and functional.",
+        "No console errors related to the removed PDF elements."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Investigate and fix the failing 'Save' action for projects in SaveProjectModal.tsx and the related backend call. Ensure that saving a project correctly calls the backend saveProject method via the mutation in useQueries.ts, handles errors gracefully, and shows a success toast on completion.",
+      "text": "Fix the 'Save' project action in DashboardHeader. Investigate the saveProject mutation flow in ProjectContext.tsx and useQueries.ts (the backend save call), identify why saving fails, and correct it so that clicking Save successfully persists the current project to the backend and shows a success toast.",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-8"
         ],
         "quotes": [
-          "Models 'Save' action is failing, please correct it."
+          "The 'Save' models action is failing, please correct it."
         ]
       },
       "acceptanceCriteria": [
-        "Clicking 'Save' in the SaveProjectModal successfully persists the project to the backend.",
-        "A success toast notification is shown after a successful save.",
-        "An error toast or message is shown if the save fails.",
-        "No unhandled exceptions are thrown during the save flow."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Fix the duplicate Equity Ratio and Interest Rate fields in the Inputs dashboard. These fields are defined in FinancingSection.tsx and should appear exactly once. Audit InputsTab.tsx and FinancingSection.tsx to identify where the duplication occurs (e.g., fields rendered twice or EconomicParametersSection also rendering them) and remove the duplicate instances.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-5"
-        ],
-        "quotes": [
-          "Equity Ratio and Interest Rate are duplicated in the 'Inputs' dashboard, please correct it."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Equity Ratio appears exactly once in the Inputs dashboard.",
-        "Interest Rate appears exactly once in the Inputs dashboard.",
-        "Both fields remain functional and correctly bound to the ProjectContext state.",
-        "No other input fields are accidentally removed or duplicated."
+        "Clicking the Save button in DashboardHeader successfully calls the backend save endpoint without errors.",
+        "A success toast is displayed after a successful save.",
+        "An error toast is displayed if the save fails, with a meaningful message.",
+        "The saved project can be subsequently loaded via the Load modal."
       ]
     }
   ],
   "constraints": [
-    "Do not remove CSV export functionality.",
-    "Do not alter immutable frontend paths (hooks/useInternetIdentity.ts, hooks/useActor.ts, main.tsx, components/ui).",
-    "Preserve all existing input fields in the Inputs dashboard except for removing the duplicate Equity Ratio and Interest Rate entries."
+    "Do not remove or alter the CSV export functionality.",
+    "Do not modify files listed in frontend.immutablePaths."
   ],
   "nonGoals": [
-    "Redesigning the Export tab layout beyond removing PDF.",
-    "Adding new export formats.",
-    "Modifying subscription tier logic or export quota enforcement.",
-    "Changing the backend data model for projects."
+    "Redesigning the Export tab layout beyond removing PDF elements.",
+    "Changes to chart PNG export functionality.",
+    "Changes to subscription or payment flows."
   ],
   "imageRequirements": {
     "required": [],

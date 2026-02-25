@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useGetProjects, useDeleteProject } from '../../hooks/useQueries';
+import { useLoadProjects, useDeleteProject } from '../../hooks/useQueries';
 import { useProject } from '../../contexts/ProjectContext';
 import { toast } from 'sonner';
 import { Loader2, Trash2, FolderOpen } from 'lucide-react';
@@ -13,7 +13,7 @@ interface ProjectListModalProps {
 }
 
 export default function ProjectListModal({ open, onOpenChange }: ProjectListModalProps) {
-  const { data: projects, isLoading } = useGetProjects();
+  const { data: projects, isLoading } = useLoadProjects();
   const { loadProject } = useProject();
   const deleteProject = useDeleteProject();
 
@@ -47,7 +47,7 @@ export default function ProjectListModal({ open, onOpenChange }: ProjectListModa
             Select a project to load its data and continue working.
           </DialogDescription>
         </DialogHeader>
-
+        
         <div className="py-4">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">

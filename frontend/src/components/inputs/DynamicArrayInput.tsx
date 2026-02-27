@@ -8,20 +8,24 @@ interface DynamicArrayInputProps {
   label: string;
   unit: string;
   step?: number;
+  disabled?: boolean;
 }
 
-export default function DynamicArrayInput({ values, onChange, label, unit, step = 1 }: DynamicArrayInputProps) {
+export default function DynamicArrayInput({ values, onChange, label, unit, step = 1, disabled = false }: DynamicArrayInputProps) {
   const addYear = () => {
+    if (disabled) return;
     onChange([...values, values[values.length - 1] || 0]);
   };
 
   const removeYear = () => {
+    if (disabled) return;
     if (values.length > 1) {
       onChange(values.slice(0, -1));
     }
   };
 
   const updateValue = (index: number, value: number) => {
+    if (disabled) return;
     const newValues = [...values];
     newValues[index] = value;
     onChange(newValues);
@@ -39,7 +43,7 @@ export default function DynamicArrayInput({ values, onChange, label, unit, step 
             size="sm"
             variant="outline"
             onClick={removeYear}
-            disabled={values.length <= 1}
+            disabled={disabled || values.length <= 1}
           >
             <Minus className="w-4 h-4" />
           </Button>
@@ -48,6 +52,7 @@ export default function DynamicArrayInput({ values, onChange, label, unit, step 
             size="sm"
             variant="outline"
             onClick={addYear}
+            disabled={disabled}
           >
             <Plus className="w-4 h-4" />
           </Button>
@@ -68,6 +73,8 @@ export default function DynamicArrayInput({ values, onChange, label, unit, step 
                 value={value}
                 onChange={(e) => updateValue(index, parseFloat(e.target.value) || 0)}
                 className="pr-12"
+                disabled={disabled}
+                readOnly={disabled}
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
                 {unit}

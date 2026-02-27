@@ -15,8 +15,10 @@ import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 import Migration "migration";
 
+// Persistent data types for exports and database projects
 (with migration = Migration.run)
 actor {
+  // For front-end queries
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
@@ -31,6 +33,7 @@ actor {
     #free : ExportLimit;
   };
 
+  // Export (non-db) projects to persistent storage
   public type UserProfile = {
     name : Text;
     email : ?Text;
@@ -39,13 +42,16 @@ actor {
     modelsCreatedAnnual : Nat;
     exportsRemainingAnnual : Nat;
     lastResetTimestamp : Int;
+    romUsageCount : Nat;
   };
 
+  // Export (non-db) projects to persistent storage
   type SensitivityRange = {
     min : Float;
     max : Float;
   };
 
+  // Export (non-db) projects to persistent storage
   type MiningProject = {
     id : Blob;
     name : Text;
@@ -106,6 +112,7 @@ actor {
     };
   };
 
+  // Helper function for persistent messaging
   func log(message : Text) {
     persistentLog.add(Time.now(), { timestamp = Time.now(); message });
   };
@@ -463,6 +470,72 @@ actor {
           Runtime.trap("Unauthorized: Can only update your own projects");
         };
         projects.add(project.id, project);
+      };
+    };
+  };
+
+  // ROM (Annual Tonnage Schedule) Usage Tracking
+
+  // Returns the ROM usage count for the calling user.
+  // Requires #user permission: guests/anonymous principals are not allowed
+  // to access profile data.
+  public query ({ caller }) func getRomUsageCount() : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view ROM usage count");
+    };
+    switch (userProfiles.get(caller)) {
+      case (null) { Runtime.trap("User profile not found") };
+      case (?profile) { profile.romUsageCount };
+    };
+  };
+
+  // Increments the ROM usage count for the calling user.
+  // Requires #user permission.
+  // Free Tier users are capped at 3 ROM uses; basic and premium tiers use
+  // their respective MAX_OPERATIONS_PDF_AND_CSV limit.
+  public shared ({ caller }) func incrementRomUsage() : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can increment ROM usage");
+    };
+
+    switch (userProfiles.get(caller)) {
+      case (null) { Runtime.trap("User profile not found") };
+      case (?profile) {
+        // Free Tier is capped at 3 ROM uses as per the application intent.
+        // Basic and premium tiers use their MAX_OPERATIONS_PDF_AND_CSV limit.
+        let maxRomUsage : Nat = switch (profile.tier) {
+          case (#free(_)) { 3 };
+          case (#basic({ MAX_OPERATIONS_PDF_AND_CSV })) { MAX_OPERATIONS_PDF_AND_CSV };
+          case (#premium({ MAX_OPERATIONS_PDF_AND_CSV })) { MAX_OPERATIONS_PDF_AND_CSV };
+        };
+
+        if (profile.romUsageCount >= maxRomUsage) {
+          Runtime.trap("ROM usage limit exceeded");
+        };
+
+        let updatedProfile = {
+          profile with
+          romUsageCount = profile.romUsageCount + 1;
+        };
+        userProfiles.add(caller, updatedProfile);
+      };
+    };
+  };
+
+  // Resets the ROM usage count for any user. Admin-only.
+  public shared ({ caller }) func resetRomUsage(principalId : Principal) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can reset ROM usage");
+    };
+
+    switch (userProfiles.get(principalId)) {
+      case (null) { Runtime.trap("User profile not found") };
+      case (?profile) {
+        let updatedProfile = {
+          profile with
+          romUsageCount = 0;
+        };
+        userProfiles.add(principalId, updatedProfile);
       };
     };
   };

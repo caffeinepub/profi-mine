@@ -189,6 +189,7 @@ export interface UserProfile {
     tier: SubscriptionTier;
     modelsCreatedAnnual: bigint;
     email?: string;
+    romUsageCount: bigint;
     organization?: string;
 }
 export enum UserRole {
@@ -210,15 +211,18 @@ export interface backendInterface {
     getPersistentLogs(): Promise<Array<[bigint, LogEntry]>>;
     getProject(id: Uint8Array): Promise<MiningProject>;
     getProjectsByOwner(owner: Principal): Promise<Array<MiningProject>>;
+    getRomUsageCount(): Promise<bigint>;
     getSensitivityRanges(): Promise<Array<[string, SensitivityRange]>>;
     getSortedProjects(sortBy: string): Promise<Array<MiningProject>>;
     getStripeSessionStatus(sessionId: string): Promise<StripeSessionStatus>;
     getSubscriptionTierInfo(): Promise<Array<SubscriptionTier>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     handleStripeWebhook(sessionId: string, eventType: string): Promise<void>;
+    incrementRomUsage(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     isStripeConfigured(): Promise<boolean>;
     refreshProjects(): Promise<void>;
+    resetRomUsage(principalId: Principal): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     saveProject(project: MiningProject): Promise<void>;
     setStripeConfiguration(config: StripeConfiguration): Promise<void>;
@@ -412,6 +416,20 @@ export class Backend implements backendInterface {
             return from_candid_vec_n14(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getRomUsageCount(): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getRomUsageCount();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getRomUsageCount();
+            return result;
+        }
+    }
     async getSensitivityRanges(): Promise<Array<[string, SensitivityRange]>> {
         if (this.processError) {
             try {
@@ -496,6 +514,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async incrementRomUsage(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.incrementRomUsage();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.incrementRomUsage();
+            return result;
+        }
+    }
     async isCallerAdmin(): Promise<boolean> {
         if (this.processError) {
             try {
@@ -535,6 +567,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.refreshProjects();
+            return result;
+        }
+    }
+    async resetRomUsage(arg0: Principal): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.resetRomUsage(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.resetRomUsage(arg0);
             return result;
         }
     }
@@ -770,6 +816,7 @@ function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint
     tier: _SubscriptionTier;
     modelsCreatedAnnual: bigint;
     email: [] | [string];
+    romUsageCount: bigint;
     organization: [] | [string];
 }): {
     lastResetTimestamp: bigint;
@@ -778,6 +825,7 @@ function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint
     tier: SubscriptionTier;
     modelsCreatedAnnual: bigint;
     email?: string;
+    romUsageCount: bigint;
     organization?: string;
 } {
     return {
@@ -787,6 +835,7 @@ function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint
         tier: from_candid_SubscriptionTier_n6(_uploadFile, _downloadFile, value.tier),
         modelsCreatedAnnual: value.modelsCreatedAnnual,
         email: record_opt_to_undefined(from_candid_opt_n8(_uploadFile, _downloadFile, value.email)),
+        romUsageCount: value.romUsageCount,
         organization: record_opt_to_undefined(from_candid_opt_n8(_uploadFile, _downloadFile, value.organization))
     };
 }
@@ -883,6 +932,7 @@ function to_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     tier: SubscriptionTier;
     modelsCreatedAnnual: bigint;
     email?: string;
+    romUsageCount: bigint;
     organization?: string;
 }): {
     lastResetTimestamp: bigint;
@@ -891,6 +941,7 @@ function to_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     tier: _SubscriptionTier;
     modelsCreatedAnnual: bigint;
     email: [] | [string];
+    romUsageCount: bigint;
     organization: [] | [string];
 } {
     return {
@@ -900,6 +951,7 @@ function to_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         tier: to_candid_SubscriptionTier_n21(_uploadFile, _downloadFile, value.tier),
         modelsCreatedAnnual: value.modelsCreatedAnnual,
         email: value.email ? candid_some(value.email) : candid_none(),
+        romUsageCount: value.romUsageCount,
         organization: value.organization ? candid_some(value.organization) : candid_none()
     };
 }

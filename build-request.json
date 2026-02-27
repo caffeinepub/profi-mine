@@ -1,54 +1,115 @@
 {
   "kind": "build_request",
-  "title": "Remove PDF export option and fix Save project action",
+  "title": "Remove Save/Load options and enforce Free Tier 3-model ROM limit",
+  "projectName": "ProFi Mine",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Remove the PDF export option from the Export tab. The CSV export option should remain. The PDF-related UI elements (button, description, limit indicator) must be fully removed from ExportTab.tsx. The usePdfExport hook and any print-related CSS in index.css may be left in place but must no longer be surfaced in the UI.",
+      "text": "Remove the 'Save' and 'Load' model buttons from the DashboardHeader component. These buttons currently appear in the sticky top navigation header. Remove all UI elements, click handlers, and related modal triggers for both SaveProjectModal and ProjectListModal from DashboardHeader.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-8"
+          "msg-4"
         ],
         "quotes": [
-          "Remove PDF export option."
+          "Remove the options 'Save' and 'Load' models"
         ]
       },
       "acceptanceCriteria": [
-        "The Export tab no longer shows a PDF download button or any PDF-related UI.",
-        "CSV export option remains visible and functional.",
-        "No console errors related to the removed PDF elements."
+        "The DashboardHeader no longer renders Save or Load model buttons",
+        "SaveProjectModal and ProjectListModal are no longer triggered from DashboardHeader",
+        "No console errors related to removed modal handlers"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Fix the 'Save' project action in DashboardHeader. Investigate the saveProject mutation flow in ProjectContext.tsx and useQueries.ts (the backend save call), identify why saving fails, and correct it so that clicking Save successfully persists the current project to the backend and shows a success toast.",
-      "target": "both",
+      "text": "Remove SaveProjectModal and ProjectListModal from any other locations where they are rendered or triggered (e.g., ProjectContext, DashboardPage, or any other component that exposes Save/Load project functionality).",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-8"
+          "msg-4"
         ],
         "quotes": [
-          "The 'Save' models action is failing, please correct it."
+          "Remove the options 'Save' and 'Load' models"
         ]
       },
       "acceptanceCriteria": [
-        "Clicking the Save button in DashboardHeader successfully calls the backend save endpoint without errors.",
-        "A success toast is displayed after a successful save.",
-        "An error toast is displayed if the save fails, with a meaningful message.",
-        "The saved project can be subsequently loaded via the Load modal."
+        "SaveProjectModal and ProjectListModal are not rendered anywhere in the application",
+        "No orphaned state or handlers related to save/load project remain active in the UI"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Add a backend counter per user that tracks how many times the ROM (Annual Tonnage Schedule) inputs have been used/submitted. The counter must persist in the user's profile. Free Tier users are allowed a maximum of 3 uses. The backend must expose a method to get the current ROM usage count and a method to increment it, with access control that rejects increments beyond 3 for Free Tier users.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "Make the Free Tier to be 3 models in which when the person uses 3 times the inputs of ROM (Annual Tonnage Schedule) the app blocks the usage of these inputs and asks the person to buy the Premium Tier."
+        ]
+      },
+      "acceptanceCriteria": [
+        "User profile data structure includes a romUsageCount field (default 0)",
+        "A backend method increments romUsageCount for the authenticated caller",
+        "Free Tier users cannot increment beyond 3; the method returns an error or #err variant when the limit is reached",
+        "Premium Tier users are not subject to the ROM usage limit",
+        "romUsageCount is returned as part of the user profile query response"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "In the ReservesProductionSection component, track ROM (Annual Tonnage Schedule) usage against the backend counter. When a Free Tier user has used ROM inputs 3 times (romUsageCount >= 3), disable all Annual ROM Tonnage Schedule inputs and display a prominent inline message prompting the user to upgrade to Premium Tier. The message must include a call-to-action that opens the SubscriptionModal. Before reaching the limit, each time the user applies/confirms ROM inputs, increment the backend romUsageCount counter.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "when the person uses 3 times the inputs of ROM (Annual Tonnage Schedule) the app blocks the usage of these inputs and asks the person to buy the Premium Tier."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Annual ROM Tonnage Schedule inputs are fully interactive for Free Tier users until romUsageCount reaches 3",
+        "On the 3rd use, the counter is incremented to 3 and inputs remain usable for that session only",
+        "When romUsageCount >= 3 and user is Free Tier, all ROM tonnage inputs are disabled/read-only",
+        "A visible upgrade prompt message is shown within the ROM section explaining the limit has been reached",
+        "The upgrade prompt includes a button that opens the SubscriptionModal",
+        "Premium Tier users see no restrictions on ROM inputs",
+        "The disabled state and prompt persist across page reloads (driven by backend counter)"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Update the ProjectContext to expose romUsageCount from the user profile and provide a helper function to increment it via the backend. This data should be accessible to ReservesProductionSection and any component that needs to check or update ROM usage.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "when the person uses 3 times the inputs of ROM (Annual Tonnage Schedule) the app blocks the usage of these inputs"
+        ]
+      },
+      "acceptanceCriteria": [
+        "ProjectContext exposes romUsageCount (number) derived from the user profile",
+        "ProjectContext exposes an incrementRomUsage() async helper that calls the backend increment method",
+        "After incrementing, the user profile query is invalidated so romUsageCount reflects the updated value"
       ]
     }
   ],
   "constraints": [
-    "Do not remove or alter the CSV export functionality.",
-    "Do not modify files listed in frontend.immutablePaths."
+    "Do not remove save/load backend methods — only remove the frontend UI entry points for Save and Load model actions",
+    "Free Tier ROM limit is exactly 3 uses; Premium Tier has no ROM input restrictions",
+    "All user-facing text must be in English"
   ],
   "nonGoals": [
-    "Redesigning the Export tab layout beyond removing PDF elements.",
-    "Changes to chart PNG export functionality.",
-    "Changes to subscription or payment flows."
+    "Removing the Export tab or its CSV export functionality",
+    "Changing any other Free Tier restrictions beyond the ROM usage limit",
+    "Modifying the SubscriptionModal's internal checkout flow",
+    "Removing backend save/load project data methods"
   ],
   "imageRequirements": {
     "required": [],

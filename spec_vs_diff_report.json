@@ -1,34 +1,31 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-25T10:42:54.731Z",
-  "summary": "The diff addresses both REQ-1 (remove PDF export UI from ExportTab.tsx) and REQ-2 (fix Save project mutation). REQ-1 appears fully implemented — ExportTab.tsx no longer contains PDF UI elements and only shows CSV export. REQ-2 shows a fully implemented saveProject mutation in useQueries.ts with proper field mapping. However, there is no direct evidence in the diff of success/error toast handling wired up in DashboardHeader.tsx or ProjectContext.tsx for the save action, which is part of REQ-2's acceptance criteria.",
+  "generatedAt": "2026-02-26T12:36:56.249Z",
+  "summary": "The diff implements most of the required changes: DashboardHeader Save/Load buttons removed (REQ-1), backend romUsageCount field added with migration and increment method (REQ-3), ProjectContext exposes romUsageCount and incrementRomUsage (REQ-5), and ReservesProductionSection implements ROM limit logic with upgrade prompt (REQ-4). However, REQ-2 requires complete removal of SaveProjectModal and ProjectListModal from all rendering locations, but the diff shows SaveProjectModal still exists as a file and there is no evidence of its removal from DashboardPage or other components.",
   "missing_requirements": [
     {
       "id": "REQ-2",
-      "requirement": "A success toast is displayed after a successful save, and an error toast is displayed if the save fails with a meaningful message.",
-      "reason": "The diff shows the useSaveProjectMutation hook in useQueries.ts but does not show changes to DashboardHeader.tsx or ProjectContext.tsx where the toast notifications would be wired up on save success/failure. The frontend-file-summaries.txt mentions DashboardHeader has save functionality but no diff content confirms toast calls were added.",
+      "requirement": "Remove SaveProjectModal and ProjectListModal from any other locations where they are rendered or triggered. SaveProjectModal and ProjectListModal should not be rendered anywhere in the application and no orphaned state or handlers related to save/load project should remain active in the UI.",
+      "reason": "The diff shows SaveProjectModal.tsx still exists as a file listed in frontend-file-summaries.txt with its save project modal functionality intact. There is no evidence that SaveProjectModal or ProjectListModal have been removed from DashboardPage or other components. The ProjectContext still imports useSaveProjectMutation and useLoadProject, suggesting save/load handlers remain active.",
       "evidence": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/components/dashboard/DashboardHeader.tsx"
+        "frontend/src/components/project/SaveProjectModal.tsx",
+        "frontend/src/contexts/ProjectContext.tsx",
+        "frontend-file-summaries.txt"
       ]
     }
   ],
-  "hallucinated_features": [
-    {
-      "description": "A backend migration module (migration.mo) was added with empty OldActor and NewActor types and a trivial run function.",
-      "reason": "Neither REQ-1 nor REQ-2 requested any backend migration scaffolding. The build request focused solely on frontend UI removal and fixing the save mutation flow.",
-      "evidence": [
-        "backend/migration.mo"
-      ]
-    }
-  ],
-  "confidence": 0.65,
+  "hallucinated_features": [],
+  "confidence": 0.72,
   "changed_files": [
     "backend/main.mo",
     "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/export/ExportTab.tsx",
+    "frontend/src/components/auth/ProfileSetupModal.tsx",
+    "frontend/src/components/dashboard/DashboardHeader.tsx",
+    "frontend/src/components/inputs/DynamicArrayInput.tsx",
+    "frontend/src/components/inputs/ReservesProductionSection.tsx",
+    "frontend/src/contexts/ProjectContext.tsx",
     "frontend/src/hooks/useQueries.ts",
     "project_state.json"
   ]

@@ -1,48 +1,82 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Remove PDF export option and fix Save project action",
+  "title": "Remove Save/Load options and enforce Free Tier 3-model ROM limit",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Remove PDF export UI elements from ExportTab while preserving CSV export functionality",
+      "summary": "Remove Save and Load model buttons from DashboardHeader component",
       "acceptanceCriteria": [
-        "The Export tab no longer shows a PDF download button or any PDF-related UI.",
-        "CSV export option remains visible and functional.",
-        "No console errors related to the removed PDF elements."
+        "The DashboardHeader no longer renders Save or Load model buttons",
+        "SaveProjectModal and ProjectListModal are no longer triggered from DashboardHeader",
+        "No console errors related to removed modal handlers"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/export/ExportTab.tsx",
+          "path": "frontend/src/components/dashboard/DashboardHeader.tsx",
           "operation": "modify",
-          "description": "Remove all PDF export UI elements including the PDF download button, description text, and limit indicator. Keep only the CSV export section visible. Remove any imports or references to usePdfExport hook. Ensure the remaining CSV export UI is properly styled and functional without layout shifts from the removal."
+          "description": "Remove the Save and Load model buttons from the header UI. Remove all state variables, handlers, and imports related to SaveProjectModal and ProjectListModal (including isSaveModalOpen, isLoadModalOpen, setIsSaveModalOpen, setIsLoadModalOpen state hooks and their button onClick handlers). Keep the subscription tier display, project name display, and LoginButton intact."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Investigate and fix the Save project action to successfully persist projects to the backend",
+      "summary": "Remove SaveProjectModal and ProjectListModal from all other rendering locations",
       "acceptanceCriteria": [
-        "Clicking the Save button in DashboardHeader successfully calls the backend save endpoint without errors.",
-        "A success toast is displayed after a successful save.",
-        "An error toast is displayed if the save fails, with a meaningful message.",
-        "The saved project can be subsequently loaded via the Load modal."
+        "SaveProjectModal and ProjectListModal are not rendered anywhere in the application",
+        "No orphaned state or handlers related to save/load project remain active in the UI"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/DashboardPage.tsx",
+          "operation": "modify",
+          "description": "Remove any imports, state, handlers, or JSX rendering related to SaveProjectModal and ProjectListModal if present. Ensure the dashboard page only renders the five tabs (Inputs, Projections, Sensitivity, Export, Guide) wrapped in ProjectProvider and ScenarioProvider without any save/load UI."
+        },
+        {
+          "path": "frontend/src/contexts/ProjectContext.tsx",
+          "operation": "modify",
+          "description": "Review the ProjectContext for any UI-triggered save/load modal state management. If the context exposes modal open/close helpers or state specifically for UI modals (not the underlying save/load data methods), remove those exports. Keep the backend save/load mutation hooks (useSaveProject, useLoadProject) intact as they may be used internally or by other parts of the app."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Enforce Free Tier ROM usage limit in ReservesProductionSection with upgrade prompt",
+      "acceptanceCriteria": [
+        "Annual ROM Tonnage Schedule inputs are fully interactive for Free Tier users until romUsageCount reaches 3",
+        "On the 3rd use, the counter is incremented to 3 and inputs remain usable for that session only",
+        "When romUsageCount >= 3 and user is Free Tier, all ROM tonnage inputs are disabled/read-only",
+        "A visible upgrade prompt message is shown within the ROM section explaining the limit has been reached",
+        "The upgrade prompt includes a button that opens the SubscriptionModal",
+        "Premium Tier users see no restrictions on ROM inputs",
+        "The disabled state and prompt persist across page reloads (driven by backend counter)"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/inputs/ReservesProductionSection.tsx",
+          "operation": "modify",
+          "description": "Add logic to track ROM usage and enforce the Free Tier 3-use limit. Retrieve romUsageCount and tier from ProjectContext. Display a prominent alert message with an upgrade button when romUsageCount >= 3 for Free Tier users. When the limit is reached, disable all Annual ROM Tonnage Schedule inputs (make them read-only). The upgrade button should open the SubscriptionModal. Before the limit is reached, increment the backend romUsageCount counter each time the user applies/confirms ROM tonnage changes (e.g., on blur, form submission, or explicit apply action). Premium Tier users must not see any restrictions or prompts related to ROM usage."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Expose romUsageCount and incrementRomUsage helper in ProjectContext",
+      "acceptanceCriteria": [
+        "ProjectContext exposes romUsageCount (number) derived from the user profile",
+        "ProjectContext exposes an incrementRomUsage() async helper that calls the backend increment method",
+        "After incrementing, the user profile query is invalidated so romUsageCount reflects the updated value"
       ],
       "file_operations": [
         {
           "path": "frontend/src/contexts/ProjectContext.tsx",
           "operation": "modify",
-          "description": "Review and fix the saveProject mutation logic. Ensure the project state is correctly serialized before calling the backend saveProject method. Verify that all required MiningProject fields (id, owner, name, dates, financial parameters) are properly populated. Add error handling to catch and log any serialization or validation issues. Ensure the mutation onSuccess callback shows a success toast and onError shows an error toast with the error message."
+          "description": "Add romUsageCount to the ProjectContext value, derived from userProfile?.romUsageCount (default to 0 if null or undefined). Implement an incrementRomUsage async function that calls actor.incrementRomUsage() and then invalidates the 'currentUserProfile' query key to refetch the updated profile. Export both romUsageCount and incrementRomUsage in the context value so ReservesProductionSection and other components can access and update ROM usage."
         },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Inspect the saveProject mutation implementation. Verify the actor.saveProject call is correctly awaiting the backend response. Ensure proper error propagation from the backend to the UI. Add detailed error logging to identify why saves might fail (e.g., missing fields, type mismatches, backend errors). Confirm the mutation properly invalidates the projects query cache on success to reflect the saved project in the Load modal."
-        },
-        {
-          "path": "frontend/src/components/dashboard/DashboardHeader.tsx",
-          "operation": "modify",
-          "description": "Review the Save button click handler to ensure it correctly triggers the saveProject mutation from ProjectContext. Verify the button shows appropriate loading state during save operations. Ensure any pre-save validation (e.g., checking if a project name exists) is in place. Add error boundary handling if the save operation throws synchronously."
+          "description": "Add a React Query mutation hook useIncrementRomUsage that calls actor.incrementRomUsage() and invalidates the currentUserProfile query on success. This hook will be used by ProjectContext to implement the incrementRomUsage helper. Ensure the mutation handles errors gracefully and displays appropriate error messages if the backend rejects the increment (e.g., when the Free Tier limit is exceeded)."
         }
       ]
     }

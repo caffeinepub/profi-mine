@@ -1,16 +1,11 @@
-import { HardHat, Save, FolderOpen, TrendingUp } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { HardHat, TrendingUp } from 'lucide-react';
 import LoginButton from '../auth/LoginButton';
 import { useState } from 'react';
-import SaveProjectModal from '../project/SaveProjectModal';
-import ProjectListModal from '../project/ProjectListModal';
 import SubscriptionModal from '../subscription/SubscriptionModal';
 import { useProject } from '../../contexts/ProjectContext';
 import { Badge } from '@/components/ui/badge';
 
 export default function DashboardHeader() {
-  const [showSaveModal, setShowSaveModal] = useState(false);
-  const [showLoadModal, setShowLoadModal] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const { projectName, subscriptionTier, usageCount, usageLimit, exportsRemaining, subscriptionLoading } = useProject();
 
@@ -65,32 +60,12 @@ export default function DashboardHeader() {
                 </button>
               )}
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowSaveModal(true)}
-                className="hidden sm:flex items-center gap-2"
-              >
-                <Save className="w-4 h-4" />
-                Save
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowLoadModal(true)}
-                className="hidden sm:flex items-center gap-2"
-              >
-                <FolderOpen className="w-4 h-4" />
-                Load
-              </Button>
               <LoginButton />
             </div>
           </div>
         </div>
       </header>
 
-      <SaveProjectModal open={showSaveModal} onOpenChange={setShowSaveModal} />
-      <ProjectListModal open={showLoadModal} onOpenChange={setShowLoadModal} />
       <SubscriptionModal
         open={showSubscriptionModal}
         onOpenChange={setShowSubscriptionModal}

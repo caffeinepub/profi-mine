@@ -38,6 +38,7 @@ export default function ProfileSetupModal() {
         modelsCreatedAnnual: BigInt(0),
         exportsRemainingAnnual: selectedTier === 'free' ? BigInt(2) : BigInt(1000),
         lastResetTimestamp: BigInt(Date.now() * 1000000),
+        romUsageCount: BigInt(0),
       };
 
       await saveProfile.mutateAsync(newProfile);
@@ -113,7 +114,7 @@ export default function ProfileSetupModal() {
                           </li>
                           <li className="flex items-start gap-2">
                             <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                            <span>2 total exports (CSV & PDF combined)</span>
+                            <span>2 total CSV exports</span>
                           </li>
                           <li className="flex items-start gap-2">
                             <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
@@ -143,7 +144,7 @@ export default function ProfileSetupModal() {
                           </li>
                           <li className="flex items-start gap-2">
                             <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                            <span>Unlimited exports (CSV & PDF)</span>
+                            <span>Unlimited CSV exports</span>
                           </li>
                           <li className="flex items-start gap-2">
                             <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />

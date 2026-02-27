@@ -186,7 +186,7 @@ export function useDeleteProject() {
   });
 }
 
-export function useIsStripeConfigured() {
+export function useCheckStripeConfiguration() {
   const { actor, isFetching: actorFetching } = useActor();
 
   return useQuery<boolean>({
@@ -215,7 +215,7 @@ export function useSetStripeConfiguration() {
 }
 
 export function useCanExport() {
-  const { actor } = useActor();
+  const { actor, isFetching: actorFetching } = useActor();
 
   return useQuery<boolean>({
     queryKey: ['canExport'],
@@ -223,6 +223,40 @@ export function useCanExport() {
       if (!actor) throw new Error('Actor not available');
       return actor.canExport();
     },
-    enabled: !!actor,
+    enabled: !!actor && !actorFetching,
+  });
+}
+
+export function useDecrementExportCount() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      await actor.decrementExportCount();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['canExport'] });
+    },
+  });
+}
+
+export function useIncrementRomUsage() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      await actor.incrementRomUsage();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+    onError: (error: Error) => {
+      console.error('Increment ROM usage error:', error);
+    },
   });
 }

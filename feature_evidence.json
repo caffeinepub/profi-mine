@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-remove-the-pdf-export-option-from-the-export-tab-the-csv-export-option-should-remain-the-pdf-related-ui-elements-button-description-limit-indicator-must-be-fully-removed-from-exporttab-tsx-the-usepdfexport-hook-and-any-print-related-css-in-index-css-may-be-left-in-place-but-must-no-longer-be-surfaced-in-the-ui",
-      "featureTitle": "Remove the PDF export option from the Export tab. The CSV export option should remain. The PDF-related UI elements (button, description, limit indicator) must be fully removed from ExportTab.tsx. The usePdfExport hook and any print-related CSS in index.css may be left in place but must no longer be surfaced in the UI.",
+      "featureId": "feature-remove-the-save-and-load-model-buttons-from-the-dashboardheader-component-these-buttons-currently-appear-in-the-sticky-top-navigation-header-remove-all-ui-elements-click-handlers-and-related-modal-triggers-for-both-saveprojectmodal-and-projectlistmodal-from-dashboardheader",
+      "featureTitle": "Remove the 'Save' and 'Load' model buttons from the DashboardHeader component. These buttons currently appear in the sticky top navigation header. Remove all UI elements, click handlers, and related modal triggers for both SaveProjectModal and ProjectListModal from DashboardHeader.",
       "files": [
-        "frontend/src/components/export/ExportTab.tsx"
+        "frontend/src/components/dashboard/DashboardHeader.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -23,10 +23,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-fix-the-save-project-action-in-dashboardheader-investigate-the-saveproject-mutation-flow-in-projectcontext-tsx-and-usequeries-ts-the-backend-save-call-identify-why-saving-fails-and-correct-it-so-that-clicking-save-successfully-persists-the-current-project-to-the-backend-and-shows-a-success-toast",
-      "featureTitle": "Fix the 'Save' project action in DashboardHeader. Investigate the saveProject mutation flow in ProjectContext.tsx and useQueries.ts (the backend save call), identify why saving fails, and correct it so that clicking Save successfully persists the current project to the backend and shows a success toast.",
+      "featureId": "feature-remove-saveprojectmodal-and-projectlistmodal-from-any-other-locations-where-they-are-rendered-or-triggered-e-g-projectcontext-dashboardpage-or-any-other-component-that-exposes-save-load-project-functionality",
+      "featureTitle": "Remove SaveProjectModal and ProjectListModal from any other locations where they are rendered or triggered (e.g., ProjectContext, DashboardPage, or any other component that exposes Save/Load project functionality).",
       "files": [
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/src/contexts/ProjectContext.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -40,6 +40,49 @@
       ],
       "testIds": [
         "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-in-the-reservesproductionsection-component-track-rom-annual-tonnage-schedule-usage-against-the-backend-counter-when-a-free-tier-user-has-used-rom-inputs-3-times-romusagecount-3-disable-all-annual-rom-tonnage-schedule-inputs-and-display-a-prominent-inline-message-prompting-the-user-to-upgrade-to-premium-tier-the-message-must-include-a-call-to-action-that-opens-the-subscriptionmodal-before-reaching-the-limit-each-time-the-user-applies-confirms-rom-inputs-increment-the-backend-romusagecount-counter",
+      "featureTitle": "In the ReservesProductionSection component, track ROM (Annual Tonnage Schedule) usage against the backend counter. When a Free Tier user has used ROM inputs 3 times (romUsageCount >= 3), disable all Annual ROM Tonnage Schedule inputs and display a prominent inline message prompting the user to upgrade to Premium Tier. The message must include a call-to-action that opens the SubscriptionModal. Before reaching the limit, each time the user applies/confirms ROM inputs, increment the backend romUsageCount counter.",
+      "files": [
+        "frontend/src/components/inputs/ReservesProductionSection.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-projectcontext-to-expose-romusagecount-from-the-user-profile-and-provide-a-helper-function-to-increment-it-via-the-backend-this-data-should-be-accessible-to-reservesproductionsection-and-any-component-that-needs-to-check-or-update-rom-usage",
+      "featureTitle": "Update the ProjectContext to expose romUsageCount from the user profile and provide a helper function to increment it via the backend. This data should be accessible to ReservesProductionSection and any component that needs to check or update ROM usage.",
+      "files": [
+        "frontend/src/contexts/ProjectContext.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
       ],
       "confidence": "high"
     }

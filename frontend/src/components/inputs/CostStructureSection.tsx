@@ -150,39 +150,6 @@ export default function CostStructureSection() {
               </Select>
             </div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="equityRatio" className="flex items-center gap-2">
-                Equity Ratio (%)
-                <InfoTooltip content={GLOSSARY.equityRatio} />
-              </Label>
-              <Input
-                id="equityRatio"
-                type="number"
-                min="0"
-                max="100"
-                step="1"
-                value={inputs.equityRatio}
-                onChange={(e) => updateInput('equityRatio', parseFloat(e.target.value) || 0)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="interestRate" className="flex items-center gap-2">
-                Interest Rate (%)
-                <InfoTooltip content={GLOSSARY.interestRate} />
-              </Label>
-              <Input
-                id="interestRate"
-                type="number"
-                min="0"
-                step="0.1"
-                value={inputs.interestRate}
-                onChange={(e) => updateInput('interestRate', parseFloat(e.target.value) || 0)}
-              />
-            </div>
-          </div>
         </div>
       </div>
     </div>

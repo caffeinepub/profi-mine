@@ -1,30 +1,70 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
-  "architectural_notes": [],
+  "summary": "App with model tiers: Free Tier limited to 3 uses of ROM (Annual Tonnage Schedule) inputs before blocking and prompting Premium Tier upgrade. Save/Load model options removed.",
+  "architectural_notes": [
+    "Free Tier enforces a hard limit of 3 ROM (Annual Tonnage Schedule) input uses; after limit is reached, inputs are blocked and a Premium Tier upsell prompt is shown."
+  ],
   "known_issues": [],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-remove-the-pdf-export-option-from-the-export-tab-the-csv-export-option-should-remain-the-pdf-related-ui-elements-button-description-limit-indicator-must-be-fully-removed-from-exporttab-tsx-the-usepdfexport-hook-and-any-print-related-css-in-index-css-may-be-left-in-place-but-must-no-longer-be-surfaced-in-the-ui",
-      "title": "Remove the PDF export option from the Export tab. The CSV export option should remain. The PDF-related UI elements (button, description, limit indicator) must be fully removed from ExportTab.tsx. The usePdfExport hook and any print-related CSS in index.css may be left in place but must no longer be surfaced in the UI.",
+      "id": "feature-remove-the-save-and-load-model-buttons-from-the-dashboardheader-component-these-buttons-currently-appear-in-the-sticky-top-navigation-header-remove-all-ui-elements-click-handlers-and-related-modal-triggers-for-both-saveprojectmodal-and-projectlistmodal-from-dashboardheader",
+      "title": "Remove the 'Save' and 'Load' model buttons from the DashboardHeader component. These buttons currently appear in the sticky top navigation header. Remove all UI elements, click handlers, and related modal triggers for both SaveProjectModal and ProjectListModal from DashboardHeader.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-fix-the-save-project-action-in-dashboardheader-investigate-the-saveproject-mutation-flow-in-projectcontext-tsx-and-usequeries-ts-the-backend-save-call-identify-why-saving-fails-and-correct-it-so-that-clicking-save-successfully-persists-the-current-project-to-the-backend-and-shows-a-success-toast",
-      "title": "Fix the 'Save' project action in DashboardHeader. Investigate the saveProject mutation flow in ProjectContext.tsx and useQueries.ts (the backend save call), identify why saving fails, and correct it so that clicking Save successfully persists the current project to the backend and shows a success toast.",
+      "id": "feature-remove-saveprojectmodal-and-projectlistmodal-from-any-other-locations-where-they-are-rendered-or-triggered-e-g-projectcontext-dashboardpage-or-any-other-component-that-exposes-save-load-project-functionality",
+      "title": "Remove SaveProjectModal and ProjectListModal from any other locations where they are rendered or triggered (e.g., ProjectContext, DashboardPage, or any other component that exposes Save/Load project functionality).",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-in-the-reservesproductionsection-component-track-rom-annual-tonnage-schedule-usage-against-the-backend-counter-when-a-free-tier-user-has-used-rom-inputs-3-times-romusagecount-3-disable-all-annual-rom-tonnage-schedule-inputs-and-display-a-prominent-inline-message-prompting-the-user-to-upgrade-to-premium-tier-the-message-must-include-a-call-to-action-that-opens-the-subscriptionmodal-before-reaching-the-limit-each-time-the-user-applies-confirms-rom-inputs-increment-the-backend-romusagecount-counter",
+      "title": "In the ReservesProductionSection component, track ROM (Annual Tonnage Schedule) usage against the backend counter. When a Free Tier user has used ROM inputs 3 times (romUsageCount >= 3), disable all Annual ROM Tonnage Schedule inputs and display a prominent inline message prompting the user to upgrade to Premium Tier. The message must include a call-to-action that opens the SubscriptionModal. Before reaching the limit, each time the user applies/confirms ROM inputs, increment the backend romUsageCount counter.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-projectcontext-to-expose-romusagecount-from-the-user-profile-and-provide-a-helper-function-to-increment-it-via-the-backend-this-data-should-be-accessible-to-reservesproductionsection-and-any-component-that-needs-to-check-or-update-rom-usage",
+      "title": "Update the ProjectContext to expose romUsageCount from the user profile and provide a helper function to increment it via the backend. This data should be accessible to ReservesProductionSection and any component that needs to check or update ROM usage.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Remove PDF export option and fix Save project action",
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Remove 'Save' and 'Load' model options from the app",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Implement Free Tier limit of 3 uses of ROM (Annual Tonnage Schedule) inputs; block usage after 3 and prompt user to buy Premium Tier",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Add a backend counter per user that tracks how many times the ROM (Annual Tonnage Schedule) inputs have been used/submitted. The counter must persist in the user's profile. Free Tier users are allowed a maximum of 3 uses. The backend must expose a method to get the current ROM usage count and a method to increment it, with access control that rejects increments beyond 3 for Free Tier users.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "ProFi Mine",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

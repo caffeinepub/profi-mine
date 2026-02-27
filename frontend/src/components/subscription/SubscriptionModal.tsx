@@ -137,7 +137,7 @@ export default function SubscriptionModal({
                   </li>
                   <li className="flex items-start gap-2 text-sm">
                     <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>2 total exports (CSV & PDF combined)</span>
+                    <span>2 total CSV exports</span>
                   </li>
                   <li className="flex items-start gap-2 text-sm">
                     <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
@@ -181,7 +181,7 @@ export default function SubscriptionModal({
                 </li>
                 <li className="flex items-start gap-2 text-sm">
                   <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Unlimited exports (CSV & PDF)</span>
+                  <span>Unlimited CSV exports</span>
                 </li>
                 <li className="flex items-start gap-2 text-sm">
                   <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />

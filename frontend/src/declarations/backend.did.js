@@ -36,6 +36,7 @@ export const UserProfile = IDL.Record({
   'tier' : SubscriptionTier,
   'modelsCreatedAnnual' : IDL.Nat,
   'email' : IDL.Opt(IDL.Text),
+  'romUsageCount' : IDL.Nat,
   'organization' : IDL.Opt(IDL.Text),
 });
 export const LogEntry = IDL.Record({
@@ -132,6 +133,7 @@ export const idlService = IDL.Service({
       [IDL.Vec(MiningProject)],
       ['query'],
     ),
+  'getRomUsageCount' : IDL.Func([], [IDL.Nat], ['query']),
   'getSensitivityRanges' : IDL.Func(
       [],
       [IDL.Vec(IDL.Tuple(IDL.Text, SensitivityRange))],
@@ -154,9 +156,11 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'handleStripeWebhook' : IDL.Func([IDL.Text, IDL.Text], [], []),
+  'incrementRomUsage' : IDL.Func([], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'isStripeConfigured' : IDL.Func([], [IDL.Bool], ['query']),
   'refreshProjects' : IDL.Func([], [], []),
+  'resetRomUsage' : IDL.Func([IDL.Principal], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'saveProject' : IDL.Func([MiningProject], [], []),
   'setStripeConfiguration' : IDL.Func([StripeConfiguration], [], []),
@@ -201,6 +205,7 @@ export const idlFactory = ({ IDL }) => {
     'tier' : SubscriptionTier,
     'modelsCreatedAnnual' : IDL.Nat,
     'email' : IDL.Opt(IDL.Text),
+    'romUsageCount' : IDL.Nat,
     'organization' : IDL.Opt(IDL.Text),
   });
   const LogEntry = IDL.Record({ 'message' : IDL.Text, 'timestamp' : IDL.Int });
@@ -291,6 +296,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(MiningProject)],
         ['query'],
       ),
+    'getRomUsageCount' : IDL.Func([], [IDL.Nat], ['query']),
     'getSensitivityRanges' : IDL.Func(
         [],
         [IDL.Vec(IDL.Tuple(IDL.Text, SensitivityRange))],
@@ -313,9 +319,11 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'handleStripeWebhook' : IDL.Func([IDL.Text, IDL.Text], [], []),
+    'incrementRomUsage' : IDL.Func([], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'isStripeConfigured' : IDL.Func([], [IDL.Bool], ['query']),
     'refreshProjects' : IDL.Func([], [], []),
+    'resetRomUsage' : IDL.Func([IDL.Principal], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'saveProject' : IDL.Func([MiningProject], [], []),
     'setStripeConfiguration' : IDL.Func([StripeConfiguration], [], []),

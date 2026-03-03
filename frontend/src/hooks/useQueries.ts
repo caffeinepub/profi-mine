@@ -260,3 +260,18 @@ export function useIncrementRomUsage() {
     },
   });
 }
+
+export function useMarkUserAsPremium() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      await actor.markUserAsPremium();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}

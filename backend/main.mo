@@ -13,10 +13,9 @@ import Principal "mo:core/Principal";
 import OutCall "http-outcalls/outcall";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
-import Migration "migration";
 
 // Persistent data types for exports and database projects
-(with migration = Migration.run)
+
 actor {
   // For front-end queries
   let accessControlState = AccessControl.initState();
@@ -232,10 +231,93 @@ actor {
     };
   };
 
+  // New function to create checkout session for premium subscription
+  public shared ({ caller }) func createPremiumCheckoutSession() : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can create checkout sessions");
+    };
+
+    let items : [Stripe.ShoppingItem] = [{
+      currency = "usd";
+      productName = "Premium Subscription";
+      productDescription = "Access to premium features";
+      priceInCents = 23_500; // Corrected price to $235
+      quantity = 1;
+    }];
+
+    let successUrl = "https://app.runtime-mining.com/payment-success";
+    let cancelUrl = "https://app.runtime-mining.com/payment-failure";
+
+    log("Starting premium checkout session for caller with 1 item");
+    let stripeConfig : Stripe.StripeConfiguration = {
+      secretKey = "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";
+      allowedCountries = [
+        "AU",
+        "US",
+        "GB",
+        "CA",
+        "NZ",
+        "ZA",
+        "SG",
+        "IN",
+        "DE",
+        "FR",
+        "ES",
+        "DK",
+        "EE",
+        "FI",
+        "IE",
+        "LU",
+        "NL",
+        "NO",
+        "SE",
+      ];
+    };
+    let itemsText = stringifyShoppingItems(items);
+    let requestSummary = "Request to Stripe with default config | Items: " # itemsText # " | Success URL: " # successUrl # " | Cancel URL: " # cancelUrl;
+    log(requestSummary);
+
+    try {
+      let sessionResponse = await Stripe.createCheckoutSession(stripeConfig, caller, items, successUrl, cancelUrl, transform);
+      log("Premium checkout session created successfully. Response: " # sessionResponse);
+      sessionResponse;
+    } catch (_) {
+      let errorMessage = "Premium checkout session creation failed.";
+      log(errorMessage # " Persistent log added before trap.");
+      Runtime.trap(errorMessage);
+    };
+  };
+
   // Helper function to stringify shopping items for logging
   func stringifyShoppingItems(items : [Stripe.ShoppingItem]) : Text {
     let itemStrings = items.map(func(item) { item.productName });
     "[" # itemStrings.toText() # "]";
+  };
+
+  // Marks the calling user as premium. Only authenticated (non-anonymous) users
+  // can call this for themselves. The caller principal is taken from the shared
+  // context — no principal parameter is accepted to prevent privilege escalation.
+  public shared ({ caller }) func markUserAsPremium() : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can be marked as premium");
+    };
+
+    switch (userProfiles.get(caller)) {
+      case (null) { Runtime.trap("User profile not found") };
+      case (?profile) {
+        let updatedProfile = {
+          profile with
+          tier = #premium({
+            MAX_OPERATIONS_PDF_AND_CSV = 300;
+            CSV_AND_PDF_COMBINED_MAX = 1000;
+          });
+          modelsCreatedAnnual = 0;
+          exportsRemainingAnnual = 1000;
+          lastResetTimestamp = Time.now();
+        };
+        userProfiles.add(caller, updatedProfile);
+      };
+    };
   };
 
   public query func transform(input : OutCall.TransformationInput) : async OutCall.TransformationOutput {
@@ -540,3 +622,4 @@ actor {
     };
   };
 };
+

@@ -120,6 +120,7 @@ export interface backendInterface {
     canExport(): Promise<boolean>;
     clearPersistentLogs(): Promise<void>;
     createCheckoutSession(items: Array<ShoppingItem>, successUrl: string, cancelUrl: string): Promise<string>;
+    createPremiumCheckoutSession(): Promise<string>;
     decrementExportCount(): Promise<void>;
     deleteProject(id: Uint8Array): Promise<void>;
     fullResetExports(principalId: Principal): Promise<void>;
@@ -138,6 +139,7 @@ export interface backendInterface {
     incrementRomUsage(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     isStripeConfigured(): Promise<boolean>;
+    markUserAsPremium(): Promise<void>;
     refreshProjects(): Promise<void>;
     resetRomUsage(principalId: Principal): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;

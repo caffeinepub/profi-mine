@@ -63,7 +63,7 @@ export default function LoginPage() {
               </li>
               <li className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-[oklch(0.55_0.15_60)]" />
-                Professional Excel & PDF exports
+                Professional CSV exports
               </li>
             </ul>
           </div>

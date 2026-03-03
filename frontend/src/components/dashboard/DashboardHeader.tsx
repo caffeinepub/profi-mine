@@ -5,18 +5,35 @@ import SubscriptionModal from '../subscription/SubscriptionModal';
 import { useProject } from '../../contexts/ProjectContext';
 import { Badge } from '@/components/ui/badge';
 
+const FREE_TIER_ROM_LIMIT = 3;
+
 export default function DashboardHeader() {
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-  const { projectName, subscriptionTier, usageCount, usageLimit, exportsRemaining, subscriptionLoading } = useProject();
+  const {
+    projectName,
+    subscriptionTier,
+    usageCount,
+    usageLimit,
+    exportsRemaining,
+    subscriptionLoading,
+    romUsageCount,
+  } = useProject();
 
-  // Calculate usage percentage for visual indicator
-  const usagePercentage = (usageCount / usageLimit) * 100;
-  const isNearLimit = usagePercentage >= 80;
-  const isAtLimit = usageCount >= usageLimit;
-
-  // Display tier name
   const isFree = subscriptionTier === 'free';
-  const displayTier = subscriptionTier === 'premium' ? 'Premium' : subscriptionTier === 'free' ? 'Free' : subscriptionTier;
+  const isPremium = subscriptionTier === 'premium';
+  const displayTier = isPremium ? 'Premium' : subscriptionTier === 'free' ? 'Free' : subscriptionTier;
+
+  // ROM Tonnage usage for free tier
+  const romLimit = FREE_TIER_ROM_LIMIT;
+  const romAtLimit = isFree && romUsageCount >= romLimit;
+  const romNearLimit = isFree && romUsageCount >= romLimit - 1;
+
+  // Export usage indicator
+  const exportsAtLimit = isFree && exportsRemaining <= 0;
+
+  // Overall alert state
+  const isAtLimit = romAtLimit || exportsAtLimit;
+  const isNearLimit = romNearLimit || (isFree && exportsRemaining <= 1);
 
   return (
     <>
@@ -44,15 +61,43 @@ export default function DashboardHeader() {
                   onClick={() => setShowSubscriptionModal(true)}
                   className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer"
                 >
-                  <TrendingUp className={`w-4 h-4 ${isAtLimit ? 'text-destructive' : isNearLimit ? 'text-warning' : 'text-muted-foreground'}`} />
+                  <TrendingUp
+                    className={`w-4 h-4 ${
+                      isAtLimit
+                        ? 'text-destructive'
+                        : isNearLimit
+                        ? 'text-warning'
+                        : 'text-muted-foreground'
+                    }`}
+                  />
                   <div className="text-left">
-                    <p className="text-xs text-muted-foreground">
-                      {isFree ? 'Models & Exports' : 'Usage'}
-                    </p>
-                    <p className={`text-sm font-medium ${isAtLimit ? 'text-destructive' : isNearLimit ? 'text-warning' : 'text-foreground'}`}>
-                      {usageCount}/{usageLimit}
-                      {isFree && <span className="text-xs ml-1">({exportsRemaining}/2 exports)</span>}
-                    </p>
+                    <p className="text-xs text-muted-foreground">Models &amp; Exports</p>
+                    {isFree ? (
+                      <div className="flex flex-col gap-0.5">
+                        <p
+                          className={`text-sm font-medium leading-tight ${
+                            romAtLimit
+                              ? 'text-destructive'
+                              : romNearLimit
+                              ? 'text-warning'
+                              : 'text-foreground'
+                          }`}
+                        >
+                          {romUsageCount}/{romLimit} ROM Tonnage Edits
+                        </p>
+                        <p
+                          className={`text-xs leading-tight ${
+                            exportsAtLimit ? 'text-destructive' : 'text-muted-foreground'
+                          }`}
+                        >
+                          {exportsRemaining}/2 exports left
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-sm font-medium text-foreground">
+                        Unlimited ROM Tonnage &middot; {exportsRemaining} exports left
+                      </p>
+                    )}
                   </div>
                   <Badge variant={isAtLimit ? 'destructive' : 'outline'} className="text-xs">
                     {displayTier}
@@ -73,6 +118,8 @@ export default function DashboardHeader() {
         usageCount={usageCount}
         usageLimit={usageLimit}
         exportsRemaining={exportsRemaining}
+        romUsageCount={romUsageCount}
+        romLimit={FREE_TIER_ROM_LIMIT}
       />
     </>
   );

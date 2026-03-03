@@ -203,6 +203,7 @@ export interface backendInterface {
     canExport(): Promise<boolean>;
     clearPersistentLogs(): Promise<void>;
     createCheckoutSession(items: Array<ShoppingItem>, successUrl: string, cancelUrl: string): Promise<string>;
+    createPremiumCheckoutSession(): Promise<string>;
     decrementExportCount(): Promise<void>;
     deleteProject(id: Uint8Array): Promise<void>;
     fullResetExports(principalId: Principal): Promise<void>;
@@ -221,6 +222,7 @@ export interface backendInterface {
     incrementRomUsage(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     isStripeConfigured(): Promise<boolean>;
+    markUserAsPremium(): Promise<void>;
     refreshProjects(): Promise<void>;
     resetRomUsage(principalId: Principal): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
@@ -301,6 +303,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.createCheckoutSession(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async createPremiumCheckoutSession(): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createPremiumCheckoutSession();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createPremiumCheckoutSession();
             return result;
         }
     }
@@ -553,6 +569,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.isStripeConfigured();
+            return result;
+        }
+    }
+    async markUserAsPremium(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.markUserAsPremium();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.markUserAsPremium();
             return result;
         }
     }

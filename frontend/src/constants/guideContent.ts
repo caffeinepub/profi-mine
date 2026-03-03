@@ -24,7 +24,7 @@ export const GUIDE_CONTENT = {
         <p><strong>Step 3:</strong> Review calculated projections in the Projections tab</p>
         <p><strong>Step 4:</strong> Perform sensitivity analysis to understand key risk factors</p>
         <p><strong>Step 5:</strong> Save your project for future reference</p>
-        <p><strong>Step 6:</strong> Export results to Excel or PDF for presentations</p>
+        <p><strong>Step 6:</strong> Export results to CSV for presentations</p>
       `,
     },
     {
@@ -123,7 +123,7 @@ export const GUIDE_CONTENT = {
       id: 'export-options',
       title: 'Export Options',
       content: `
-        <h3>Excel Export</h3>
+        <h3>CSV Export</h3>
         <p>Generates a comprehensive workbook with multiple tabs:</p>
         <ul>
           <li>Summary: Key metrics and KPIs</li>
@@ -131,15 +131,6 @@ export const GUIDE_CONTENT = {
           <li>Production: Annual tonnage and output</li>
           <li>Income Statement: Revenue, costs, and profitability</li>
           <li>Cash Flow: Operating and free cash flows</li>
-        </ul>
-        
-        <h3>PDF Export</h3>
-        <p>Creates a professional investor report including:</p>
-        <ul>
-          <li>Executive summary</li>
-          <li>Key assumptions</li>
-          <li>Financial tables</li>
-          <li>Charts and visualizations</li>
         </ul>
         
         <h3>Chart Images</h3>

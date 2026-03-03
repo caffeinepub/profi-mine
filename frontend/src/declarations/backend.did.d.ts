@@ -101,6 +101,7 @@ export interface _SERVICE {
     [Array<ShoppingItem>, string, string],
     string
   >,
+  'createPremiumCheckoutSession' : ActorMethod<[], string>,
   'decrementExportCount' : ActorMethod<[], undefined>,
   'deleteProject' : ActorMethod<[Uint8Array], undefined>,
   'fullResetExports' : ActorMethod<[Principal], undefined>,
@@ -119,6 +120,7 @@ export interface _SERVICE {
   'incrementRomUsage' : ActorMethod<[], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'isStripeConfigured' : ActorMethod<[], boolean>,
+  'markUserAsPremium' : ActorMethod<[], undefined>,
   'refreshProjects' : ActorMethod<[], undefined>,
   'resetRomUsage' : ActorMethod<[Principal], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,

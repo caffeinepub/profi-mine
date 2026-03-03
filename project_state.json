@@ -1,42 +1,18 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 3,
-  "summary": "App with model tiers: Free Tier limited to 3 uses of ROM (Annual Tonnage Schedule) inputs before blocking and prompting Premium Tier upgrade. Save/Load model options removed.",
-  "architectural_notes": [
-    "Free Tier enforces a hard limit of 3 ROM (Annual Tonnage Schedule) input uses; after limit is reached, inputs are blocked and a Premium Tier upsell prompt is shown."
+  "projectStateVersion": 5,
+  "summary": "New project",
+  "architectural_notes": [],
+  "known_issues": [
+    "Stripe checkout is showing incorrect price ($9.95) instead of the expected $235 for Premium upgrade"
   ],
-  "known_issues": [],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-remove-the-save-and-load-model-buttons-from-the-dashboardheader-component-these-buttons-currently-appear-in-the-sticky-top-navigation-header-remove-all-ui-elements-click-handlers-and-related-modal-triggers-for-both-saveprojectmodal-and-projectlistmodal-from-dashboardheader",
-      "title": "Remove the 'Save' and 'Load' model buttons from the DashboardHeader component. These buttons currently appear in the sticky top navigation header. Remove all UI elements, click handlers, and related modal triggers for both SaveProjectModal and ProjectListModal from DashboardHeader.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-remove-saveprojectmodal-and-projectlistmodal-from-any-other-locations-where-they-are-rendered-or-triggered-e-g-projectcontext-dashboardpage-or-any-other-component-that-exposes-save-load-project-functionality",
-      "title": "Remove SaveProjectModal and ProjectListModal from any other locations where they are rendered or triggered (e.g., ProjectContext, DashboardPage, or any other component that exposes Save/Load project functionality).",
+      "id": "feature-remove-the-pdf-exports-list-item-from-the-pre-login-page-ui-element-identified-by-xpath-html-1-body-1-div-1-div-1-div-1-div-2-div-1-div-4-ul-1-li-3-this-item-should-no-longer-appear-in-that-list",
+      "title": "Remove the 'PDF Exports' list item from the pre-login page UI element identified by XPath /html[1]/body[1]/div[1]/div[1]/div[1]/div[2]/div[1]/div[4]/ul[1]/li[3]. This item should no longer appear in that list.",
       "reqIds": [
         "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-in-the-reservesproductionsection-component-track-rom-annual-tonnage-schedule-usage-against-the-backend-counter-when-a-free-tier-user-has-used-rom-inputs-3-times-romusagecount-3-disable-all-annual-rom-tonnage-schedule-inputs-and-display-a-prominent-inline-message-prompting-the-user-to-upgrade-to-premium-tier-the-message-must-include-a-call-to-action-that-opens-the-subscriptionmodal-before-reaching-the-limit-each-time-the-user-applies-confirms-rom-inputs-increment-the-backend-romusagecount-counter",
-      "title": "In the ReservesProductionSection component, track ROM (Annual Tonnage Schedule) usage against the backend counter. When a Free Tier user has used ROM inputs 3 times (romUsageCount >= 3), disable all Annual ROM Tonnage Schedule inputs and display a prominent inline message prompting the user to upgrade to Premium Tier. The message must include a call-to-action that opens the SubscriptionModal. Before reaching the limit, each time the user applies/confirms ROM inputs, increment the backend romUsageCount counter.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-projectcontext-to-expose-romusagecount-from-the-user-profile-and-provide-a-helper-function-to-increment-it-via-the-backend-this-data-should-be-accessible-to-reservesproductionsection-and-any-component-that-needs-to-check-or-update-rom-usage",
-      "title": "Update the ProjectContext to expose romUsageCount from the user profile and provide a helper function to increment it via the backend. This data should be accessible to ReservesProductionSection and any component that needs to check or update ROM usage.",
-      "reqIds": [
-        "REQ-5"
       ],
       "version": 1
     }
@@ -44,27 +20,20 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Remove 'Save' and 'Load' model options from the app",
-      "reqIds": [],
+      "summary": "Update the Stripe checkout session configuration so that the Premium upgrade price is set to $235 (23500 cents) instead of the current incorrect value of $9.95 (995 cents). This must be corrected wherever the price/amount is defined — whether in the backend Stripe configuration, the frontend stripe.ts config, or the checkout session creation logic.",
+      "reqIds": [
+        "REQ-1"
+      ],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Implement Free Tier limit of 3 uses of ROM (Annual Tonnage Schedule) inputs; block usage after 3 and prompt user to buy Premium Tier",
+      "summary": "Remove 'PDF Exports' from the specified text/UI element.",
       "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Add a backend counter per user that tracks how many times the ROM (Annual Tonnage Schedule) inputs have been used/submitted. The counter must persist in the user's profile. Free Tier users are allowed a maximum of 3 uses. The backend must expose a method to get the current ROM usage count and a method to increment it, with access control that rejects increments beyond 3 for Free Tier users.",
-      "reqIds": [
-        "REQ-3"
-      ],
       "status": "pending"
     }
   ],
-  "gameProjectType": "none",
-  "projectName": "ProFi Mine",
+  "projectName": "Fix Stripe checkout price from $9.95 to $235",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

@@ -2,31 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-remove-the-save-and-load-model-buttons-from-the-dashboardheader-component-these-buttons-currently-appear-in-the-sticky-top-navigation-header-remove-all-ui-elements-click-handlers-and-related-modal-triggers-for-both-saveprojectmodal-and-projectlistmodal-from-dashboardheader",
-      "featureTitle": "Remove the 'Save' and 'Load' model buttons from the DashboardHeader component. These buttons currently appear in the sticky top navigation header. Remove all UI elements, click handlers, and related modal triggers for both SaveProjectModal and ProjectListModal from DashboardHeader.",
+      "featureId": "feature-remove-the-pdf-exports-list-item-from-the-pre-login-page-ui-element-identified-by-xpath-html-1-body-1-div-1-div-1-div-1-div-2-div-1-div-4-ul-1-li-3-this-item-should-no-longer-appear-in-that-list",
+      "featureTitle": "Remove the 'PDF Exports' list item from the pre-login page UI element identified by XPath /html[1]/body[1]/div[1]/div[1]/div[1]/div[2]/div[1]/div[4]/ul[1]/li[3]. This item should no longer appear in that list.",
       "files": [
-        "frontend/src/components/dashboard/DashboardHeader.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "stripe@3.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-remove-saveprojectmodal-and-projectlistmodal-from-any-other-locations-where-they-are-rendered-or-triggered-e-g-projectcontext-dashboardpage-or-any-other-component-that-exposes-save-load-project-functionality",
-      "featureTitle": "Remove SaveProjectModal and ProjectListModal from any other locations where they are rendered or triggered (e.g., ProjectContext, DashboardPage, or any other component that exposes Save/Load project functionality).",
-      "files": [
-        "frontend/src/contexts/ProjectContext.tsx"
+        "frontend/src/pages/LoginPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -40,49 +19,6 @@
       ],
       "testIds": [
         "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-in-the-reservesproductionsection-component-track-rom-annual-tonnage-schedule-usage-against-the-backend-counter-when-a-free-tier-user-has-used-rom-inputs-3-times-romusagecount-3-disable-all-annual-rom-tonnage-schedule-inputs-and-display-a-prominent-inline-message-prompting-the-user-to-upgrade-to-premium-tier-the-message-must-include-a-call-to-action-that-opens-the-subscriptionmodal-before-reaching-the-limit-each-time-the-user-applies-confirms-rom-inputs-increment-the-backend-romusagecount-counter",
-      "featureTitle": "In the ReservesProductionSection component, track ROM (Annual Tonnage Schedule) usage against the backend counter. When a Free Tier user has used ROM inputs 3 times (romUsageCount >= 3), disable all Annual ROM Tonnage Schedule inputs and display a prominent inline message prompting the user to upgrade to Premium Tier. The message must include a call-to-action that opens the SubscriptionModal. Before reaching the limit, each time the user applies/confirms ROM inputs, increment the backend romUsageCount counter.",
-      "files": [
-        "frontend/src/components/inputs/ReservesProductionSection.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "stripe@3.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-4"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-the-projectcontext-to-expose-romusagecount-from-the-user-profile-and-provide-a-helper-function-to-increment-it-via-the-backend-this-data-should-be-accessible-to-reservesproductionsection-and-any-component-that-needs-to-check-or-update-rom-usage",
-      "featureTitle": "Update the ProjectContext to expose romUsageCount from the user profile and provide a helper function to increment it via the backend. This data should be accessible to ReservesProductionSection and any component that needs to check or update ROM usage.",
-      "files": [
-        "frontend/src/contexts/ProjectContext.tsx",
-        "frontend/src/hooks/useQueries.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "stripe@3.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-5"
       ],
       "confidence": "high"
     }

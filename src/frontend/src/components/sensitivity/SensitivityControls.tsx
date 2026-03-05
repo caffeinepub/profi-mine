@@ -1,19 +1,25 @@
-import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
-import { Button } from '@/components/ui/button';
-import { useSensitivity } from '../../contexts/SensitivityContext';
-import { formatPercentage } from '../../utils/formatters';
-import { RotateCcw } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { RotateCcw } from "lucide-react";
+import { useSensitivity } from "../../contexts/SensitivityContext";
+import { formatPercentage } from "../../utils/formatters";
 
 export default function SensitivityControls() {
-  const { adjustments, updateAdjustment, resetAdjustments, adjustedResults } = useSensitivity();
+  const { adjustments, updateAdjustment, resetAdjustments, adjustedResults } =
+    useSensitivity();
 
   const variables = [
-    { key: 'commodityPrice' as const, label: 'Commodity Price', min: -20, max: 20 },
-    { key: 'oreGrade' as const, label: 'Ore Grade', min: -20, max: 20 },
-    { key: 'recoveryRate' as const, label: 'Recovery Rate', min: -20, max: 20 },
-    { key: 'capex' as const, label: 'CAPEX', min: -20, max: 20 },
-    { key: 'opex' as const, label: 'OPEX', min: -20, max: 20 },
+    {
+      key: "commodityPrice" as const,
+      label: "Commodity Price",
+      min: -20,
+      max: 20,
+    },
+    { key: "oreGrade" as const, label: "Ore Grade", min: -20, max: 20 },
+    { key: "recoveryRate" as const, label: "Recovery Rate", min: -20, max: 20 },
+    { key: "capex" as const, label: "CAPEX", min: -20, max: 20 },
+    { key: "opex" as const, label: "OPEX", min: -20, max: 20 },
   ];
 
   return (
@@ -58,21 +64,27 @@ export default function SensitivityControls() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <p className="text-sm text-muted-foreground">NPV</p>
-              <p className="text-lg font-semibold">${(adjustedResults.npv / 1000000).toFixed(2)}M</p>
+              <p className="text-lg font-semibold">
+                ${(adjustedResults.npv / 1000000).toFixed(2)}M
+              </p>
               <p className="text-xs text-muted-foreground">
                 Base: ${(adjustedResults.baseNpv / 1000000).toFixed(2)}M
               </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">IRR</p>
-              <p className="text-lg font-semibold">{formatPercentage(adjustedResults.irr)}</p>
+              <p className="text-lg font-semibold">
+                {formatPercentage(adjustedResults.irr)}
+              </p>
               <p className="text-xs text-muted-foreground">
                 Base: {formatPercentage(adjustedResults.baseIrr)}
               </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">ROI</p>
-              <p className="text-lg font-semibold">{formatPercentage(adjustedResults.roi)}</p>
+              <p className="text-lg font-semibold">
+                {formatPercentage(adjustedResults.roi)}
+              </p>
               <p className="text-xs text-muted-foreground">
                 Base: {formatPercentage(adjustedResults.baseRoi)}
               </p>

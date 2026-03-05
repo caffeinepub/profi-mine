@@ -1,14 +1,20 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Input } from '@/components/ui/input';
-import { GLOSSARY } from '../../constants/glossary';
-import { useState } from 'react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { GLOSSARY } from "../../constants/glossary";
 
 export default function Glossary() {
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
 
-  const glossaryEntries = Object.entries(GLOSSARY).filter(([key, value]) =>
-    key.toLowerCase().includes(search.toLowerCase()) ||
-    value.toLowerCase().includes(search.toLowerCase())
+  const glossaryEntries = Object.entries(GLOSSARY).filter(
+    ([key, value]) =>
+      key.toLowerCase().includes(search.toLowerCase()) ||
+      value.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -24,7 +30,7 @@ export default function Glossary() {
         {glossaryEntries.map(([key, value]) => (
           <AccordionItem key={key} value={key}>
             <AccordionTrigger className="text-left">
-              {key.replace(/([A-Z])/g, ' $1').trim()}
+              {key.replace(/([A-Z])/g, " $1").trim()}
             </AccordionTrigger>
             <AccordionContent>
               <p className="text-muted-foreground">{value}</p>

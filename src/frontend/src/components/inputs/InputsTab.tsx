@@ -1,8 +1,14 @@
-import ReservesProductionSection from './ReservesProductionSection';
-import EconomicParametersSection from './EconomicParametersSection';
-import CostStructureSection from './CostStructureSection';
-import FinancingSection from './FinancingSection';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import CostStructureSection from "./CostStructureSection";
+import EconomicParametersSection from "./EconomicParametersSection";
+import FinancingSection from "./FinancingSection";
+import ReservesProductionSection from "./ReservesProductionSection";
 
 export default function InputsTab() {
   return (
@@ -11,7 +17,8 @@ export default function InputsTab() {
         <CardHeader>
           <CardTitle>Project Inputs</CardTitle>
           <CardDescription>
-            Enter all mining project parameters to generate financial projections
+            Enter all mining project parameters to generate financial
+            projections
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-8">

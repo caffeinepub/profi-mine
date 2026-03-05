@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { useProject } from '../contexts/ProjectContext';
-import { useActor } from './useActor';
-import { useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useProject } from "../contexts/ProjectContext";
+import { useActor } from "./useActor";
 
 export function usePdfExport() {
   const [isExporting, setIsExporting] = useState(false);
@@ -12,7 +12,7 @@ export function usePdfExport() {
 
   const exportToPdf = async () => {
     if (!actor) {
-      throw new Error('Actor not available');
+      throw new Error("Actor not available");
     }
 
     setIsExporting(true);
@@ -21,26 +21,39 @@ export function usePdfExport() {
       // Check if user can export
       const canExport = await actor.canExport();
       if (!canExport) {
-        throw new Error('Export limit reached. Upgrade to Premium for unlimited exports.');
+        throw new Error(
+          "Export limit reached. Upgrade to Premium for unlimited exports.",
+        );
       }
 
       // Decrement export count
       await actor.decrementExportCount();
 
       // Invalidate user profile to update export count
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ["currentUserProfile"] });
 
-      // Show instructions and trigger print dialog
-      toast.info('Opening print dialog. Select "Save as PDF" as your printer destination.');
-      
-      // Small delay to ensure toast is visible before print dialog
-      setTimeout(() => {
-        window.print();
-      }, 500);
+      // Show instructions
+      toast.info(
+        'Preparing PDF... Opening print dialog shortly. Select "Save as PDF" as your printer destination.',
+      );
+
+      // Wait for DOM to fully render (charts, tables, etc.) before printing
+      // Use multiple rAF + setTimeout to ensure Recharts SVGs are fully painted
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              resolve();
+            }, 800);
+          });
+        });
+      });
+
+      window.print();
     } finally {
       setIsExporting(false);
     }
   };
 
-  return { exportToPdf, isExporting };
+  return { exportToPdf, isExporting, projectName };
 }

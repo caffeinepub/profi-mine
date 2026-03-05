@@ -1,8 +1,13 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { GUIDE_CONTENT } from '../../constants/guideContent';
-import Glossary from './Glossary';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { GUIDE_CONTENT } from "../../constants/guideContent";
+import Glossary from "./Glossary";
 
 export default function UsageGuideTab() {
   return (
@@ -36,9 +41,14 @@ export default function UsageGuideTab() {
         <Card>
           <CardContent className="p-6 space-y-8">
             {GUIDE_CONTENT.sections.map((section) => (
-              <section key={section.id} id={section.id} className="scroll-mt-24">
+              <section
+                key={section.id}
+                id={section.id}
+                className="scroll-mt-24"
+              >
                 <h2 className="text-2xl font-bold mb-4">{section.title}</h2>
                 <div className="prose prose-sm dark:prose-invert max-w-none">
+                  {/* biome-ignore lint/security/noDangerouslySetInnerHtml: static developer-controlled HTML */}
                   <div dangerouslySetInnerHTML={{ __html: section.content }} />
                 </div>
               </section>

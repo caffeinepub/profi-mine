@@ -1,6 +1,12 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { useProject } from './ProjectContext';
-import { calculateFinancials, type ProjectInputs } from '../utils/calculations';
+import {
+  type ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { type ProjectInputs, calculateFinancials } from "../utils/calculations";
+import { useProject } from "./ProjectContext";
 
 interface SensitivityAdjustments {
   commodityPrice: number;
@@ -33,7 +39,9 @@ interface SensitivityContextType {
   tornadoData: TornadoDataPoint[];
 }
 
-const SensitivityContext = createContext<SensitivityContextType | undefined>(undefined);
+const SensitivityContext = createContext<SensitivityContextType | undefined>(
+  undefined,
+);
 
 const DEFAULT_ADJUSTMENTS: SensitivityAdjustments = {
   commodityPrice: 0,
@@ -45,8 +53,10 @@ const DEFAULT_ADJUSTMENTS: SensitivityAdjustments = {
 
 export function SensitivityProvider({ children }: { children: ReactNode }) {
   const { inputs, calculations } = useProject();
-  const [adjustments, setAdjustments] = useState<SensitivityAdjustments>(DEFAULT_ADJUSTMENTS);
-  const [adjustedResults, setAdjustedResults] = useState<AdjustedResults | null>(null);
+  const [adjustments, setAdjustments] =
+    useState<SensitivityAdjustments>(DEFAULT_ADJUSTMENTS);
+  const [adjustedResults, setAdjustedResults] =
+    useState<AdjustedResults | null>(null);
   const [tornadoData, setTornadoData] = useState<TornadoDataPoint[]>([]);
 
   useEffect(() => {
@@ -55,7 +65,9 @@ export function SensitivityProvider({ children }: { children: ReactNode }) {
     // Calculate adjusted results
     const adjustedInputs: ProjectInputs = {
       ...inputs,
-      commodityPrices: inputs.commodityPrices.map(p => p * (1 + adjustments.commodityPrice / 100)),
+      commodityPrices: inputs.commodityPrices.map(
+        (p) => p * (1 + adjustments.commodityPrice / 100),
+      ),
       oreGrade: inputs.oreGrade * (1 + adjustments.oreGrade / 100),
       recoveryRate: inputs.recoveryRate * (1 + adjustments.recoveryRate / 100),
       initialCapex: inputs.initialCapex * (1 + adjustments.capex / 100),
@@ -77,33 +89,36 @@ export function SensitivityProvider({ children }: { children: ReactNode }) {
     });
 
     // Calculate tornado data
-    const variables: Array<{ key: keyof SensitivityAdjustments; label: string }> = [
-      { key: 'commodityPrice', label: 'Commodity Price' },
-      { key: 'oreGrade', label: 'Ore Grade' },
-      { key: 'recoveryRate', label: 'Recovery Rate' },
-      { key: 'capex', label: 'CAPEX' },
-      { key: 'opex', label: 'OPEX' },
+    const variables: Array<{
+      key: keyof SensitivityAdjustments;
+      label: string;
+    }> = [
+      { key: "commodityPrice", label: "Commodity Price" },
+      { key: "oreGrade", label: "Ore Grade" },
+      { key: "recoveryRate", label: "Recovery Rate" },
+      { key: "capex", label: "CAPEX" },
+      { key: "opex", label: "OPEX" },
     ];
 
     const tornado: TornadoDataPoint[] = variables.map(({ key, label }) => {
       const lowInputs = { ...inputs };
       const highInputs = { ...inputs };
 
-      if (key === 'commodityPrice') {
-        lowInputs.commodityPrices = inputs.commodityPrices.map(p => p * 0.8);
-        highInputs.commodityPrices = inputs.commodityPrices.map(p => p * 1.2);
-      } else if (key === 'oreGrade') {
+      if (key === "commodityPrice") {
+        lowInputs.commodityPrices = inputs.commodityPrices.map((p) => p * 0.8);
+        highInputs.commodityPrices = inputs.commodityPrices.map((p) => p * 1.2);
+      } else if (key === "oreGrade") {
         lowInputs.oreGrade = inputs.oreGrade * 0.8;
         highInputs.oreGrade = inputs.oreGrade * 1.2;
-      } else if (key === 'recoveryRate') {
+      } else if (key === "recoveryRate") {
         lowInputs.recoveryRate = inputs.recoveryRate * 0.8;
         highInputs.recoveryRate = inputs.recoveryRate * 1.2;
-      } else if (key === 'capex') {
+      } else if (key === "capex") {
         lowInputs.initialCapex = inputs.initialCapex * 0.8;
         lowInputs.sustainingCapex = inputs.sustainingCapex * 0.8;
         highInputs.initialCapex = inputs.initialCapex * 1.2;
         highInputs.sustainingCapex = inputs.sustainingCapex * 1.2;
-      } else if (key === 'opex') {
+      } else if (key === "opex") {
         lowInputs.miningCost = inputs.miningCost * 0.8;
         lowInputs.processingCost = inputs.processingCost * 0.8;
         lowInputs.gAndACost = inputs.gAndACost * 0.8;
@@ -125,7 +140,10 @@ export function SensitivityProvider({ children }: { children: ReactNode }) {
     setTornadoData(tornado);
   }, [inputs, calculations, adjustments]);
 
-  const updateAdjustment = (key: keyof SensitivityAdjustments, value: number) => {
+  const updateAdjustment = (
+    key: keyof SensitivityAdjustments,
+    value: number,
+  ) => {
     setAdjustments((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -151,7 +169,7 @@ export function SensitivityProvider({ children }: { children: ReactNode }) {
 export function useSensitivity() {
   const context = useContext(SensitivityContext);
   if (!context) {
-    throw new Error('useSensitivity must be used within SensitivityProvider');
+    throw new Error("useSensitivity must be used within SensitivityProvider");
   }
   return context;
 }

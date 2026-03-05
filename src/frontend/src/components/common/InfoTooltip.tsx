@@ -1,5 +1,10 @@
-import { HelpCircle } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { HelpCircle } from "lucide-react";
 
 interface InfoTooltipProps {
   content: string;
@@ -10,7 +15,10 @@ export default function InfoTooltip({ content }: InfoTooltipProps) {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <button type="button" className="inline-flex text-muted-foreground hover:text-foreground transition-colors">
+          <button
+            type="button"
+            className="inline-flex text-muted-foreground hover:text-foreground transition-colors"
+          >
             <HelpCircle className="w-4 h-4" />
           </button>
         </TooltipTrigger>

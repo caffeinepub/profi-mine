@@ -1,7 +1,13 @@
-import { useNavigate } from '@tanstack/react-router';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { XCircle } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useNavigate } from "@tanstack/react-router";
+import { XCircle } from "lucide-react";
 
 export default function PaymentFailure() {
   const navigate = useNavigate();
@@ -14,9 +20,7 @@ export default function PaymentFailure() {
             <XCircle className="w-10 h-10 text-destructive" />
           </div>
           <CardTitle className="text-2xl">Payment Failed</CardTitle>
-          <CardDescription>
-            Your payment could not be processed
-          </CardDescription>
+          <CardDescription>Your payment could not be processed</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="bg-muted/50 rounded-lg p-4 border border-border">
@@ -32,14 +36,19 @@ export default function PaymentFailure() {
           </div>
           <div className="flex flex-col gap-2">
             <Button
-              onClick={() => navigate({ to: '/dashboard' })}
+              onClick={() => navigate({ to: "/dashboard" })}
               className="w-full"
             >
               Try Again
             </Button>
             <Button
               variant="outline"
-              onClick={() => window.open('mailto:support@profimine.com?subject=Payment Issue', '_blank')}
+              onClick={() =>
+                window.open(
+                  "mailto:support@profimine.com?subject=Payment Issue",
+                  "_blank",
+                )
+              }
               className="w-full"
             >
               Contact Support

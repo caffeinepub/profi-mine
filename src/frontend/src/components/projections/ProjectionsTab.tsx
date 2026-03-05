@@ -1,11 +1,17 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import SummaryKPIsTable from './SummaryKPIsTable';
-import IncomeStatementTable from './IncomeStatementTable';
-import CashFlowStatementTable from './CashFlowStatementTable';
-import CumulativeCashFlowChart from '../charts/CumulativeCashFlowChart';
-import ProductionBarChart from '../charts/ProductionBarChart';
-import CostBreakdownPieChart from '../charts/CostBreakdownPieChart';
-import { useProject } from '../../contexts/ProjectContext';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useProject } from "../../contexts/ProjectContext";
+import CostBreakdownPieChart from "../charts/CostBreakdownPieChart";
+import CumulativeCashFlowChart from "../charts/CumulativeCashFlowChart";
+import ProductionBarChart from "../charts/ProductionBarChart";
+import CashFlowStatementTable from "./CashFlowStatementTable";
+import IncomeStatementTable from "./IncomeStatementTable";
+import SummaryKPIsTable from "./SummaryKPIsTable";
 
 export default function ProjectionsTab() {
   const { calculations } = useProject();
@@ -21,11 +27,17 @@ export default function ProjectionsTab() {
   }
 
   return (
-    <div className="space-y-6" id="projections-content" data-printable="projections">
+    <div
+      className="space-y-6"
+      id="projections-content"
+      data-printable="projections"
+    >
       <Card>
         <CardHeader>
           <CardTitle>Summary KPIs</CardTitle>
-          <CardDescription>Key financial metrics for the project</CardDescription>
+          <CardDescription>
+            Key financial metrics for the project
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <SummaryKPIsTable />
@@ -64,7 +76,9 @@ export default function ProjectionsTab() {
       <Card>
         <CardHeader>
           <CardTitle>Income Statement</CardTitle>
-          <CardDescription>Annual revenue, costs, and profitability</CardDescription>
+          <CardDescription>
+            Annual revenue, costs, and profitability
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <IncomeStatementTable />

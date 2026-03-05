@@ -189,6 +189,7 @@ export interface UserProfile {
     tier: SubscriptionTier;
     modelsCreatedAnnual: bigint;
     email?: string;
+    romUsageCount: bigint;
     organization?: string;
 }
 export enum UserRole {
@@ -202,6 +203,7 @@ export interface backendInterface {
     canExport(): Promise<boolean>;
     clearPersistentLogs(): Promise<void>;
     createCheckoutSession(items: Array<ShoppingItem>, successUrl: string, cancelUrl: string): Promise<string>;
+    createPremiumCheckoutSession(): Promise<string>;
     decrementExportCount(): Promise<void>;
     deleteProject(id: Uint8Array): Promise<void>;
     fullResetExports(principalId: Principal): Promise<void>;
@@ -210,16 +212,21 @@ export interface backendInterface {
     getPersistentLogs(): Promise<Array<[bigint, LogEntry]>>;
     getProject(id: Uint8Array): Promise<MiningProject>;
     getProjectsByOwner(owner: Principal): Promise<Array<MiningProject>>;
+    getRomUsageCount(): Promise<bigint>;
     getSensitivityRanges(): Promise<Array<[string, SensitivityRange]>>;
     getSortedProjects(sortBy: string): Promise<Array<MiningProject>>;
     getStripeSessionStatus(sessionId: string): Promise<StripeSessionStatus>;
     getSubscriptionTierInfo(): Promise<Array<SubscriptionTier>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     handleStripeWebhook(sessionId: string, eventType: string): Promise<void>;
+    incrementRomUsage(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     isStripeConfigured(): Promise<boolean>;
+    markUserAsPremium(): Promise<void>;
     refreshProjects(): Promise<void>;
+    resetRomUsage(principalId: Principal): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    saveProject(project: MiningProject): Promise<void>;
     setStripeConfiguration(config: StripeConfiguration): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     updateSensitivityRange(setting: string, update: SensitivityRange): Promise<void>;
@@ -296,6 +303,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.createCheckoutSession(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async createPremiumCheckoutSession(): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createPremiumCheckoutSession();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createPremiumCheckoutSession();
             return result;
         }
     }
@@ -411,6 +432,20 @@ export class Backend implements backendInterface {
             return from_candid_vec_n14(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getRomUsageCount(): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getRomUsageCount();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getRomUsageCount();
+            return result;
+        }
+    }
     async getSensitivityRanges(): Promise<Array<[string, SensitivityRange]>> {
         if (this.processError) {
             try {
@@ -495,6 +530,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async incrementRomUsage(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.incrementRomUsage();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.incrementRomUsage();
+            return result;
+        }
+    }
     async isCallerAdmin(): Promise<boolean> {
         if (this.processError) {
             try {
@@ -523,6 +572,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async markUserAsPremium(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.markUserAsPremium();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.markUserAsPremium();
+            return result;
+        }
+    }
     async refreshProjects(): Promise<void> {
         if (this.processError) {
             try {
@@ -537,6 +600,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async resetRomUsage(arg0: Principal): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.resetRomUsage(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.resetRomUsage(arg0);
+            return result;
+        }
+    }
     async saveCallerUserProfile(arg0: UserProfile): Promise<void> {
         if (this.processError) {
             try {
@@ -548,6 +625,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.saveCallerUserProfile(to_candid_UserProfile_n19(this._uploadFile, this._downloadFile, arg0));
+            return result;
+        }
+    }
+    async saveProject(arg0: MiningProject): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.saveProject(to_candid_MiningProject_n23(this._uploadFile, this._downloadFile, arg0));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.saveProject(to_candid_MiningProject_n23(this._uploadFile, this._downloadFile, arg0));
             return result;
         }
     }
@@ -610,14 +701,14 @@ export class Backend implements backendInterface {
     async upgradeSubscription(arg0: string, arg1: string | null): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.upgradeSubscription(arg0, to_candid_opt_n23(this._uploadFile, this._downloadFile, arg1));
+                const result = await this.actor.upgradeSubscription(arg0, to_candid_opt_n25(this._uploadFile, this._downloadFile, arg1));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.upgradeSubscription(arg0, to_candid_opt_n23(this._uploadFile, this._downloadFile, arg1));
+            const result = await this.actor.upgradeSubscription(arg0, to_candid_opt_n25(this._uploadFile, this._downloadFile, arg1));
             return result;
         }
     }
@@ -755,6 +846,7 @@ function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint
     tier: _SubscriptionTier;
     modelsCreatedAnnual: bigint;
     email: [] | [string];
+    romUsageCount: bigint;
     organization: [] | [string];
 }): {
     lastResetTimestamp: bigint;
@@ -763,6 +855,7 @@ function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint
     tier: SubscriptionTier;
     modelsCreatedAnnual: bigint;
     email?: string;
+    romUsageCount: bigint;
     organization?: string;
 } {
     return {
@@ -772,6 +865,7 @@ function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint
         tier: from_candid_SubscriptionTier_n6(_uploadFile, _downloadFile, value.tier),
         modelsCreatedAnnual: value.modelsCreatedAnnual,
         email: record_opt_to_undefined(from_candid_opt_n8(_uploadFile, _downloadFile, value.email)),
+        romUsageCount: value.romUsageCount,
         organization: record_opt_to_undefined(from_candid_opt_n8(_uploadFile, _downloadFile, value.organization))
     };
 }
@@ -846,6 +940,9 @@ function from_candid_vec_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
 function from_candid_vec_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_SubscriptionTier>): Array<SubscriptionTier> {
     return value.map((x)=>from_candid_SubscriptionTier_n6(_uploadFile, _downloadFile, x));
 }
+function to_candid_MiningProject_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: MiningProject): _MiningProject {
+    return to_candid_record_n24(_uploadFile, _downloadFile, value);
+}
 function to_candid_SubscriptionTier_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: SubscriptionTier): _SubscriptionTier {
     return to_candid_variant_n22(_uploadFile, _downloadFile, value);
 }
@@ -855,7 +952,7 @@ function to_candid_UserProfile_n19(_uploadFile: (file: ExternalBlob) => Promise<
 function to_candid_UserRole_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
     return to_candid_variant_n2(_uploadFile, _downloadFile, value);
 }
-function to_candid_opt_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: string | null): [] | [string] {
+function to_candid_opt_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: string | null): [] | [string] {
     return value === null ? candid_none() : candid_some(value);
 }
 function to_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -865,6 +962,7 @@ function to_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     tier: SubscriptionTier;
     modelsCreatedAnnual: bigint;
     email?: string;
+    romUsageCount: bigint;
     organization?: string;
 }): {
     lastResetTimestamp: bigint;
@@ -873,6 +971,7 @@ function to_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     tier: _SubscriptionTier;
     modelsCreatedAnnual: bigint;
     email: [] | [string];
+    romUsageCount: bigint;
     organization: [] | [string];
 } {
     return {
@@ -882,7 +981,98 @@ function to_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         tier: to_candid_SubscriptionTier_n21(_uploadFile, _downloadFile, value.tier),
         modelsCreatedAnnual: value.modelsCreatedAnnual,
         email: value.email ? candid_some(value.email) : candid_none(),
+        romUsageCount: value.romUsageCount,
         organization: value.organization ? candid_some(value.organization) : candid_none()
+    };
+}
+function to_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: Uint8Array;
+    fcf?: number;
+    lom?: number;
+    npv?: number;
+    ocf?: number;
+    roi?: number;
+    ebitda?: number;
+    romTonnage: number;
+    recoveryRate: number;
+    commodityPrice: number;
+    owner: Principal;
+    capex: number;
+    annualOpex?: number;
+    averageTaxRate: number;
+    name: string;
+    discountRate: number;
+    depreciation: number;
+    processingCost: number;
+    annualProduction?: number;
+    lastModified: bigint;
+    creationDate: bigint;
+    miningCost: number;
+    strippingRatio: number;
+    paybackPeriod?: number;
+    gAndACost: number;
+    oreGrade: number;
+    oreReserves: number;
+    annualRevenue?: number;
+}): {
+    id: Uint8Array;
+    fcf: [] | [number];
+    lom: [] | [number];
+    npv: [] | [number];
+    ocf: [] | [number];
+    roi: [] | [number];
+    ebitda: [] | [number];
+    romTonnage: number;
+    recoveryRate: number;
+    commodityPrice: number;
+    owner: Principal;
+    capex: number;
+    annualOpex: [] | [number];
+    averageTaxRate: number;
+    name: string;
+    discountRate: number;
+    depreciation: number;
+    processingCost: number;
+    annualProduction: [] | [number];
+    lastModified: bigint;
+    creationDate: bigint;
+    miningCost: number;
+    strippingRatio: number;
+    paybackPeriod: [] | [number];
+    gAndACost: number;
+    oreGrade: number;
+    oreReserves: number;
+    annualRevenue: [] | [number];
+} {
+    return {
+        id: value.id,
+        fcf: value.fcf ? candid_some(value.fcf) : candid_none(),
+        lom: value.lom ? candid_some(value.lom) : candid_none(),
+        npv: value.npv ? candid_some(value.npv) : candid_none(),
+        ocf: value.ocf ? candid_some(value.ocf) : candid_none(),
+        roi: value.roi ? candid_some(value.roi) : candid_none(),
+        ebitda: value.ebitda ? candid_some(value.ebitda) : candid_none(),
+        romTonnage: value.romTonnage,
+        recoveryRate: value.recoveryRate,
+        commodityPrice: value.commodityPrice,
+        owner: value.owner,
+        capex: value.capex,
+        annualOpex: value.annualOpex ? candid_some(value.annualOpex) : candid_none(),
+        averageTaxRate: value.averageTaxRate,
+        name: value.name,
+        discountRate: value.discountRate,
+        depreciation: value.depreciation,
+        processingCost: value.processingCost,
+        annualProduction: value.annualProduction ? candid_some(value.annualProduction) : candid_none(),
+        lastModified: value.lastModified,
+        creationDate: value.creationDate,
+        miningCost: value.miningCost,
+        strippingRatio: value.strippingRatio,
+        paybackPeriod: value.paybackPeriod ? candid_some(value.paybackPeriod) : candid_none(),
+        gAndACost: value.gAndACost,
+        oreGrade: value.oreGrade,
+        oreReserves: value.oreReserves,
+        annualRevenue: value.annualRevenue ? candid_some(value.annualRevenue) : candid_none()
     };
 }
 function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {

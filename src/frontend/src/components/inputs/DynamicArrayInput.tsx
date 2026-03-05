@@ -1,6 +1,6 @@
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Plus, Minus } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Minus, Plus } from "lucide-react";
 
 interface DynamicArrayInputProps {
   values: number[];
@@ -8,20 +8,31 @@ interface DynamicArrayInputProps {
   label: string;
   unit: string;
   step?: number;
+  disabled?: boolean;
 }
 
-export default function DynamicArrayInput({ values, onChange, label, unit, step = 1 }: DynamicArrayInputProps) {
+export default function DynamicArrayInput({
+  values,
+  onChange,
+  label,
+  unit,
+  step = 1,
+  disabled = false,
+}: DynamicArrayInputProps) {
   const addYear = () => {
+    if (disabled) return;
     onChange([...values, values[values.length - 1] || 0]);
   };
 
   const removeYear = () => {
+    if (disabled) return;
     if (values.length > 1) {
       onChange(values.slice(0, -1));
     }
   };
 
   const updateValue = (index: number, value: number) => {
+    if (disabled) return;
     const newValues = [...values];
     newValues[index] = value;
     onChange(newValues);
@@ -39,7 +50,7 @@ export default function DynamicArrayInput({ values, onChange, label, unit, step 
             size="sm"
             variant="outline"
             onClick={removeYear}
-            disabled={values.length <= 1}
+            disabled={disabled || values.length <= 1}
           >
             <Minus className="w-4 h-4" />
           </Button>
@@ -48,33 +59,45 @@ export default function DynamicArrayInput({ values, onChange, label, unit, step 
             size="sm"
             variant="outline"
             onClick={addYear}
+            disabled={disabled}
           >
             <Plus className="w-4 h-4" />
           </Button>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-        {values.map((value, index) => (
-          <div key={index} className="space-y-1">
-            <label className="text-xs text-muted-foreground">
-              {label} {index + 1}
-            </label>
-            <div className="relative">
-              <Input
-                type="number"
-                min="0"
-                step={step}
-                value={value}
-                onChange={(e) => updateValue(index, parseFloat(e.target.value) || 0)}
-                className="pr-12"
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                {unit}
-              </span>
+        {values.map((value, index) => {
+          const inputId = `${label.replace(/\s+/g, "-").toLowerCase()}-${index}`;
+          return (
+            <div key={`year-${index + 1}`} className="space-y-1">
+              <label
+                htmlFor={inputId}
+                className="text-xs text-muted-foreground"
+              >
+                {label} {index + 1}
+              </label>
+              <div className="relative">
+                <Input
+                  id={inputId}
+                  type="number"
+                  min="0"
+                  step={step}
+                  value={value}
+                  onChange={(e) =>
+                    updateValue(index, Number.parseFloat(e.target.value) || 0)
+                  }
+                  className="pr-12"
+                  disabled={disabled}
+                  readOnly={disabled}
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                  {unit}
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

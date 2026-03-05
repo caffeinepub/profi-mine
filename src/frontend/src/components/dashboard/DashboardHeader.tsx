@@ -1,27 +1,43 @@
-import { HardHat, Save, FolderOpen, TrendingUp } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import LoginButton from '../auth/LoginButton';
-import { useState } from 'react';
-import SaveProjectModal from '../project/SaveProjectModal';
-import ProjectListModal from '../project/ProjectListModal';
-import SubscriptionModal from '../subscription/SubscriptionModal';
-import { useProject } from '../../contexts/ProjectContext';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from "@/components/ui/badge";
+import { HardHat, TrendingUp } from "lucide-react";
+import { useState } from "react";
+import { useProject } from "../../contexts/ProjectContext";
+import LoginButton from "../auth/LoginButton";
+import SubscriptionModal from "../subscription/SubscriptionModal";
+
+const FREE_TIER_ROM_LIMIT = 3;
 
 export default function DashboardHeader() {
-  const [showSaveModal, setShowSaveModal] = useState(false);
-  const [showLoadModal, setShowLoadModal] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-  const { projectName, subscriptionTier, usageCount, usageLimit, exportsRemaining, subscriptionLoading } = useProject();
+  const {
+    projectName,
+    subscriptionTier,
+    usageCount,
+    usageLimit,
+    exportsRemaining,
+    subscriptionLoading,
+    romUsageCount,
+  } = useProject();
 
-  // Calculate usage percentage for visual indicator
-  const usagePercentage = (usageCount / usageLimit) * 100;
-  const isNearLimit = usagePercentage >= 80;
-  const isAtLimit = usageCount >= usageLimit;
+  const isFree = subscriptionTier === "free";
+  const isPremium = subscriptionTier === "premium";
+  const displayTier = isPremium
+    ? "Premium"
+    : subscriptionTier === "free"
+      ? "Free"
+      : subscriptionTier;
 
-  // Display tier name
-  const isFree = subscriptionTier === 'free';
-  const displayTier = subscriptionTier === 'premium' ? 'Premium' : subscriptionTier === 'free' ? 'Free' : subscriptionTier;
+  // ROM Tonnage usage for free tier
+  const romLimit = FREE_TIER_ROM_LIMIT;
+  const romAtLimit = isFree && romUsageCount >= romLimit;
+  const romNearLimit = isFree && romUsageCount >= romLimit - 1;
+
+  // Export usage indicator
+  const exportsAtLimit = isFree && exportsRemaining <= 0;
+
+  // Overall alert state
+  const isAtLimit = romAtLimit || exportsAtLimit;
+  const isNearLimit = romNearLimit || (isFree && exportsRemaining <= 1);
 
   return (
     <>
@@ -34,9 +50,13 @@ export default function DashboardHeader() {
                 <HardHat className="w-7 h-7 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">ProFi Mine</h1>
+                <h1 className="text-2xl font-bold text-foreground">
+                  ProFi Mine
+                </h1>
                 {projectName && (
-                  <p className="text-xs text-muted-foreground">Project: {projectName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Project: {projectName}
+                  </p>
                 )}
               </div>
             </div>
@@ -46,51 +66,68 @@ export default function DashboardHeader() {
               {/* Subscription Usage Display */}
               {!subscriptionLoading && (
                 <button
+                  type="button"
                   onClick={() => setShowSubscriptionModal(true)}
                   className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer"
                 >
-                  <TrendingUp className={`w-4 h-4 ${isAtLimit ? 'text-destructive' : isNearLimit ? 'text-warning' : 'text-muted-foreground'}`} />
+                  <TrendingUp
+                    className={`w-4 h-4 ${
+                      isAtLimit
+                        ? "text-destructive"
+                        : isNearLimit
+                          ? "text-warning"
+                          : "text-muted-foreground"
+                    }`}
+                  />
                   <div className="text-left">
                     <p className="text-xs text-muted-foreground">
-                      {isFree ? 'Models & Exports' : 'Usage'}
+                      Models &amp; Exports
                     </p>
-                    <p className={`text-sm font-medium ${isAtLimit ? 'text-destructive' : isNearLimit ? 'text-warning' : 'text-foreground'}`}>
-                      {usageCount}/{usageLimit}
-                      {isFree && <span className="text-xs ml-1">({exportsRemaining}/2 exports)</span>}
-                    </p>
+                    {isFree ? (
+                      <div className="flex flex-col gap-0.5">
+                        <p
+                          className={`text-sm font-medium leading-tight ${
+                            romAtLimit
+                              ? "text-destructive"
+                              : romNearLimit
+                                ? "text-warning"
+                                : "text-foreground"
+                          }`}
+                        >
+                          {romUsageCount}/{romLimit} ROM Tonnage Edits
+                        </p>
+                        <p
+                          className={`text-xs leading-tight ${
+                            exportsAtLimit
+                              ? "text-destructive"
+                              : "text-muted-foreground"
+                          }`}
+                        >
+                          {exportsRemaining}/2 exports left
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-sm font-medium text-foreground">
+                        Unlimited ROM Tonnage &middot; {exportsRemaining}{" "}
+                        exports left
+                      </p>
+                    )}
                   </div>
-                  <Badge variant={isAtLimit ? 'destructive' : 'outline'} className="text-xs">
+                  <Badge
+                    variant={isAtLimit ? "destructive" : "outline"}
+                    className="text-xs"
+                  >
                     {displayTier}
                   </Badge>
                 </button>
               )}
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowSaveModal(true)}
-                className="hidden sm:flex items-center gap-2"
-              >
-                <Save className="w-4 h-4" />
-                Save
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowLoadModal(true)}
-                className="hidden sm:flex items-center gap-2"
-              >
-                <FolderOpen className="w-4 h-4" />
-                Load
-              </Button>
               <LoginButton />
             </div>
           </div>
         </div>
       </header>
 
-      <SaveProjectModal open={showSaveModal} onOpenChange={setShowSaveModal} />
-      <ProjectListModal open={showLoadModal} onOpenChange={setShowLoadModal} />
       <SubscriptionModal
         open={showSubscriptionModal}
         onOpenChange={setShowSubscriptionModal}
@@ -98,6 +135,8 @@ export default function DashboardHeader() {
         usageCount={usageCount}
         usageLimit={usageLimit}
         exportsRemaining={exportsRemaining}
+        romUsageCount={romUsageCount}
+        romLimit={FREE_TIER_ROM_LIMIT}
       />
     </>
   );

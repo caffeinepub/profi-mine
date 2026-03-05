@@ -1,2 +1,3 @@
 // Stripe configuration for frontend
-export const STRIPE_PUBLISHABLE_KEY = 'pk_live_51JbBvUHkLCsqzrQ28BslBztOw7l1fh2X4TNsZmRsgG3Hs3n0RImWC4pJ4rPFHsQuzliLZqPpOsbMWCDemr6Fb8SU00XgPhLXpy';
+export const STRIPE_PUBLISHABLE_KEY =
+  "pk_live_51JbBvUHkLCsqzrQ28BslBztOw7l1fh2X4TNsZmRsgG3Hs3n0RImWC4pJ4rPFHsQuzliLZqPpOsbMWCDemr6Fb8SU00XgPhLXpy";

@@ -1,8 +1,8 @@
 export const GUIDE_CONTENT = {
   sections: [
     {
-      id: 'overview',
-      title: 'Application Overview',
+      id: "overview",
+      title: "Application Overview",
       content: `
         <p>ProFi Mine is a comprehensive financial modeling tool designed specifically for mining projects. It enables users to:</p>
         <ul>
@@ -16,20 +16,19 @@ export const GUIDE_CONTENT = {
       `,
     },
     {
-      id: 'getting-started',
-      title: 'Getting Started',
+      id: "getting-started",
+      title: "Getting Started",
       content: `
         <p><strong>Step 1:</strong> Log in using Internet Identity authentication</p>
         <p><strong>Step 2:</strong> Navigate to the Inputs tab to enter your project parameters</p>
         <p><strong>Step 3:</strong> Review calculated projections in the Projections tab</p>
         <p><strong>Step 4:</strong> Perform sensitivity analysis to understand key risk factors</p>
-        <p><strong>Step 5:</strong> Save your project for future reference</p>
-        <p><strong>Step 6:</strong> Export results to Excel or PDF for presentations</p>
+        <p><strong>Step 5:</strong> Export results to CSV for presentations</p>
       `,
     },
     {
-      id: 'input-guide',
-      title: 'Input Guide',
+      id: "input-guide",
+      title: "Input Guide",
       content: `
         <h3>Reserves & Production</h3>
         <p><strong>Ore Reserves:</strong> Total mineable ore in tonnes. This determines the overall project scale.</p>
@@ -51,8 +50,8 @@ export const GUIDE_CONTENT = {
       `,
     },
     {
-      id: 'calculations',
-      title: 'Understanding Calculations',
+      id: "calculations",
+      title: "Understanding Calculations",
       content: `
         <h3>Production Profile</h3>
         <p>Annual Production (grams) = ROM Tonnage × Ore Grade × Recovery Rate</p>
@@ -83,8 +82,8 @@ export const GUIDE_CONTENT = {
       `,
     },
     {
-      id: 'interpreting-outputs',
-      title: 'Interpreting Outputs',
+      id: "interpreting-outputs",
+      title: "Interpreting Outputs",
       content: `
         <h3>Key Performance Indicators</h3>
         <p><strong>NPV:</strong> Positive values indicate profitable projects. Compare against investment alternatives.</p>
@@ -99,8 +98,8 @@ export const GUIDE_CONTENT = {
       `,
     },
     {
-      id: 'sensitivity-guide',
-      title: 'Sensitivity Analysis Guide',
+      id: "sensitivity-guide",
+      title: "Sensitivity Analysis Guide",
       content: `
         <p>Sensitivity analysis helps identify which variables have the greatest impact on project economics.</p>
         
@@ -120,10 +119,10 @@ export const GUIDE_CONTENT = {
       `,
     },
     {
-      id: 'export-options',
-      title: 'Export Options',
+      id: "export-options",
+      title: "Export Options",
       content: `
-        <h3>Excel Export</h3>
+        <h3>CSV Export</h3>
         <p>Generates a comprehensive workbook with multiple tabs:</p>
         <ul>
           <li>Summary: Key metrics and KPIs</li>
@@ -131,15 +130,6 @@ export const GUIDE_CONTENT = {
           <li>Production: Annual tonnage and output</li>
           <li>Income Statement: Revenue, costs, and profitability</li>
           <li>Cash Flow: Operating and free cash flows</li>
-        </ul>
-        
-        <h3>PDF Export</h3>
-        <p>Creates a professional investor report including:</p>
-        <ul>
-          <li>Executive summary</li>
-          <li>Key assumptions</li>
-          <li>Financial tables</li>
-          <li>Charts and visualizations</li>
         </ul>
         
         <h3>Chart Images</h3>

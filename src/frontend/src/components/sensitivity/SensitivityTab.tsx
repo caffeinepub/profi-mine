@@ -1,8 +1,14 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import SensitivityControls from './SensitivityControls';
-import SensitivityTornado from './SensitivityTornado';
-import ScenarioComparison from './ScenarioComparison';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import ScenarioComparison from "./ScenarioComparison";
+import SensitivityControls from "./SensitivityControls";
+import SensitivityTornado from "./SensitivityTornado";
 
 export default function SensitivityTab() {
   return (

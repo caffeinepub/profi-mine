@@ -107,6 +107,7 @@ export interface UserProfile {
     tier: SubscriptionTier;
     modelsCreatedAnnual: bigint;
     email?: string;
+    romUsageCount: bigint;
     organization?: string;
 }
 export enum UserRole {
@@ -119,6 +120,7 @@ export interface backendInterface {
     canExport(): Promise<boolean>;
     clearPersistentLogs(): Promise<void>;
     createCheckoutSession(items: Array<ShoppingItem>, successUrl: string, cancelUrl: string): Promise<string>;
+    createPremiumCheckoutSession(): Promise<string>;
     decrementExportCount(): Promise<void>;
     deleteProject(id: Uint8Array): Promise<void>;
     fullResetExports(principalId: Principal): Promise<void>;
@@ -127,16 +129,21 @@ export interface backendInterface {
     getPersistentLogs(): Promise<Array<[bigint, LogEntry]>>;
     getProject(id: Uint8Array): Promise<MiningProject>;
     getProjectsByOwner(owner: Principal): Promise<Array<MiningProject>>;
+    getRomUsageCount(): Promise<bigint>;
     getSensitivityRanges(): Promise<Array<[string, SensitivityRange]>>;
     getSortedProjects(sortBy: string): Promise<Array<MiningProject>>;
     getStripeSessionStatus(sessionId: string): Promise<StripeSessionStatus>;
     getSubscriptionTierInfo(): Promise<Array<SubscriptionTier>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     handleStripeWebhook(sessionId: string, eventType: string): Promise<void>;
+    incrementRomUsage(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     isStripeConfigured(): Promise<boolean>;
+    markUserAsPremium(): Promise<void>;
     refreshProjects(): Promise<void>;
+    resetRomUsage(principalId: Principal): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    saveProject(project: MiningProject): Promise<void>;
     setStripeConfiguration(config: StripeConfiguration): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     updateSensitivityRange(setting: string, update: SensitivityRange): Promise<void>;

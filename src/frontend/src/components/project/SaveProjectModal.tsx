@@ -1,29 +1,39 @@
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useProject } from '../../contexts/ProjectContext';
-import { toast } from 'sonner';
-import { AlertCircle, Loader2 } from 'lucide-react';
-import SubscriptionModal from '../subscription/SubscriptionModal';
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { AlertCircle, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useProject } from "../../contexts/ProjectContext";
+import SubscriptionModal from "../subscription/SubscriptionModal";
 
 interface SaveProjectModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export default function SaveProjectModal({ open, onOpenChange }: SaveProjectModalProps) {
-  const { 
-    projectName, 
-    setProjectName, 
-    saveProject, 
-    subscriptionTier, 
-    usageCount, 
+export default function SaveProjectModal({
+  open,
+  onOpenChange,
+}: SaveProjectModalProps) {
+  const {
+    projectName,
+    setProjectName,
+    saveProject,
+    subscriptionTier,
+    usageCount,
     usageLimit,
-    subscriptionLoading 
+    subscriptionLoading,
   } = useProject();
-  const [name, setName] = useState(projectName || '');
+  const [name, setName] = useState(projectName || "");
   const [isSaving, setIsSaving] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
@@ -32,7 +42,7 @@ export default function SaveProjectModal({ open, onOpenChange }: SaveProjectModa
 
   const handleSave = async () => {
     if (!name.trim()) {
-      toast.error('Please enter a project name');
+      toast.error("Please enter a project name");
       return;
     }
 
@@ -46,15 +56,15 @@ export default function SaveProjectModal({ open, onOpenChange }: SaveProjectModa
     try {
       await saveProject(name.trim());
       setProjectName(name.trim());
-      toast.success('Project saved successfully!');
+      toast.success("Project saved successfully!");
       onOpenChange(false);
     } catch (error: any) {
       // Check if error is due to reaching limit
-      if (error?.message?.includes('Monthly model limit reached')) {
-        toast.error('You have reached your monthly model limit');
+      if (error?.message?.includes("Monthly model limit reached")) {
+        toast.error("You have reached your monthly model limit");
         setShowUpgradeModal(true);
       } else {
-        toast.error('Failed to save project');
+        toast.error("Failed to save project");
         console.error(error);
       }
     } finally {
@@ -69,10 +79,11 @@ export default function SaveProjectModal({ open, onOpenChange }: SaveProjectModa
           <DialogHeader>
             <DialogTitle>Save Project</DialogTitle>
             <DialogDescription>
-              Enter a name for your mining project to save all inputs and calculations.
+              Enter a name for your mining project to save all inputs and
+              calculations.
             </DialogDescription>
           </DialogHeader>
-          
+
           {subscriptionLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -82,19 +93,29 @@ export default function SaveProjectModal({ open, onOpenChange }: SaveProjectModa
               <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <h4 className="font-semibold text-destructive mb-1">Monthly Limit Reached</h4>
+                  <h4 className="font-semibold text-destructive mb-1">
+                    Monthly Limit Reached
+                  </h4>
                   <p className="text-sm text-muted-foreground">
-                    You've used all {usageLimit} models available in your {subscriptionTier} tier this month.
-                    Upgrade to continue creating models.
+                    You've used all {usageLimit} models available in your{" "}
+                    {subscriptionTier} tier this month. Upgrade to continue
+                    creating models.
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
-                <Button onClick={() => setShowUpgradeModal(true)} className="w-full">
+                <Button
+                  onClick={() => setShowUpgradeModal(true)}
+                  className="w-full"
+                >
                   View Upgrade Options
                 </Button>
-                <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full">
+                <Button
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                  className="w-full"
+                >
                   Cancel
                 </Button>
               </div>
@@ -103,7 +124,9 @@ export default function SaveProjectModal({ open, onOpenChange }: SaveProjectModa
             <>
               <div className="space-y-4 py-4">
                 <div className="bg-muted/50 rounded-lg p-3 border border-border">
-                  <p className="text-xs text-muted-foreground mb-1">Usage this month</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Usage this month
+                  </p>
                   <p className="text-sm font-medium">
                     {usageCount} / {usageLimit} models ({subscriptionTier} tier)
                   </p>
@@ -122,7 +145,11 @@ export default function SaveProjectModal({ open, onOpenChange }: SaveProjectModa
               </div>
 
               <DialogFooter>
-                <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
+                <Button
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                  disabled={isSaving}
+                >
                   Cancel
                 </Button>
                 <Button onClick={handleSave} disabled={isSaving}>
@@ -132,7 +159,7 @@ export default function SaveProjectModal({ open, onOpenChange }: SaveProjectModa
                       Saving...
                     </>
                   ) : (
-                    'Save Project'
+                    "Save Project"
                   )}
                 </Button>
               </DialogFooter>

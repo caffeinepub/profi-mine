@@ -1,6 +1,16 @@
-import { useSensitivity } from '../../contexts/SensitivityContext';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
-import { formatCurrency } from '../../utils/formatters';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { useSensitivity } from "../../contexts/SensitivityContext";
+import { formatCurrency } from "../../utils/formatters";
 
 export default function SensitivityTornado() {
   const { tornadoData } = useSensitivity();
@@ -22,19 +32,38 @@ export default function SensitivityTornado() {
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={tornadoData} layout="vertical">
           <CartesianGrid strokeDasharray="3 3" stroke="oklch(var(--border))" />
-          <XAxis type="number" stroke="oklch(var(--foreground))" tickFormatter={(value) => `$${(value / 1000000).toFixed(0)}M`} />
-          <YAxis type="category" dataKey="variable" stroke="oklch(var(--foreground))" width={120} />
+          <XAxis
+            type="number"
+            stroke="oklch(var(--foreground))"
+            tickFormatter={(value) => `$${(value / 1000000).toFixed(0)}M`}
+          />
+          <YAxis
+            type="category"
+            dataKey="variable"
+            stroke="oklch(var(--foreground))"
+            width={120}
+          />
           <Tooltip
             formatter={(value: number) => formatCurrency(value)}
             contentStyle={{
-              backgroundColor: 'oklch(var(--card))',
-              border: '1px solid oklch(var(--border))',
-              borderRadius: '8px',
+              backgroundColor: "oklch(var(--card))",
+              border: "1px solid oklch(var(--border))",
+              borderRadius: "8px",
             }}
           />
           <Legend />
-          <Bar dataKey="low" fill="oklch(0.60 0.15 20)" name="-20%" stackId="a" />
-          <Bar dataKey="high" fill="oklch(0.55 0.15 140)" name="+20%" stackId="a" />
+          <Bar
+            dataKey="low"
+            fill="oklch(0.60 0.15 20)"
+            name="-20%"
+            stackId="a"
+          />
+          <Bar
+            dataKey="high"
+            fill="oklch(0.55 0.15 140)"
+            name="+20%"
+            stackId="a"
+          />
         </BarChart>
       </ResponsiveContainer>
     </div>

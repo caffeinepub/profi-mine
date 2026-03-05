@@ -1,9 +1,15 @@
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useProject } from '../../contexts/ProjectContext';
-import InfoTooltip from '../common/InfoTooltip';
-import { GLOSSARY } from '../../constants/glossary';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { GLOSSARY } from "../../constants/glossary";
+import { useProject } from "../../contexts/ProjectContext";
+import InfoTooltip from "../common/InfoTooltip";
 
 export default function CostStructureSection() {
   const { inputs, updateInput } = useProject();
@@ -14,8 +20,10 @@ export default function CostStructureSection() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">Cost Structure</h3>
-        
+        <h3 className="text-lg font-semibold text-foreground mb-4">
+          Cost Structure
+        </h3>
+
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -29,12 +37,20 @@ export default function CostStructureSection() {
                 min="0"
                 step="0.1"
                 value={inputs.initialCapex}
-                onChange={(e) => updateInput('initialCapex', parseFloat(e.target.value) || 0)}
+                onChange={(e) =>
+                  updateInput(
+                    "initialCapex",
+                    Number.parseFloat(e.target.value) || 0,
+                  )
+                }
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="sustainingCapex" className="flex items-center gap-2">
+              <Label
+                htmlFor="sustainingCapex"
+                className="flex items-center gap-2"
+              >
                 Sustaining CAPEX (Annual $M)
                 <InfoTooltip content={GLOSSARY.sustainingCapex} />
               </Label>
@@ -44,7 +60,12 @@ export default function CostStructureSection() {
                 min="0"
                 step="0.1"
                 value={inputs.sustainingCapex}
-                onChange={(e) => updateInput('sustainingCapex', parseFloat(e.target.value) || 0)}
+                onChange={(e) =>
+                  updateInput(
+                    "sustainingCapex",
+                    Number.parseFloat(e.target.value) || 0,
+                  )
+                }
               />
             </div>
           </div>
@@ -61,12 +82,20 @@ export default function CostStructureSection() {
                 min="0"
                 step="0.1"
                 value={inputs.miningCost}
-                onChange={(e) => updateInput('miningCost', parseFloat(e.target.value) || 0)}
+                onChange={(e) =>
+                  updateInput(
+                    "miningCost",
+                    Number.parseFloat(e.target.value) || 0,
+                  )
+                }
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="processingCost" className="flex items-center gap-2">
+              <Label
+                htmlFor="processingCost"
+                className="flex items-center gap-2"
+              >
                 Processing Cost ($/tonne)
                 <InfoTooltip content={GLOSSARY.processingCost} />
               </Label>
@@ -76,7 +105,12 @@ export default function CostStructureSection() {
                 min="0"
                 step="0.1"
                 value={inputs.processingCost}
-                onChange={(e) => updateInput('processingCost', parseFloat(e.target.value) || 0)}
+                onChange={(e) =>
+                  updateInput(
+                    "processingCost",
+                    Number.parseFloat(e.target.value) || 0,
+                  )
+                }
               />
             </div>
 
@@ -91,7 +125,12 @@ export default function CostStructureSection() {
                 min="0"
                 step="0.1"
                 value={inputs.gAndACost}
-                onChange={(e) => updateInput('gAndACost', parseFloat(e.target.value) || 0)}
+                onChange={(e) =>
+                  updateInput(
+                    "gAndACost",
+                    Number.parseFloat(e.target.value) || 0,
+                  )
+                }
               />
             </div>
           </div>
@@ -109,7 +148,12 @@ export default function CostStructureSection() {
                 max="100"
                 step="0.1"
                 value={inputs.royalties}
-                onChange={(e) => updateInput('royalties', parseFloat(e.target.value) || 0)}
+                onChange={(e) =>
+                  updateInput(
+                    "royalties",
+                    Number.parseFloat(e.target.value) || 0,
+                  )
+                }
               />
             </div>
 
@@ -124,7 +168,12 @@ export default function CostStructureSection() {
                 min="0"
                 step="0.1"
                 value={inputs.closureCosts}
-                onChange={(e) => updateInput('closureCosts', parseFloat(e.target.value) || 0)}
+                onChange={(e) =>
+                  updateInput(
+                    "closureCosts",
+                    Number.parseFloat(e.target.value) || 0,
+                  )
+                }
               />
             </div>
 
@@ -135,52 +184,23 @@ export default function CostStructureSection() {
               </Label>
               <Select
                 value={inputs.closureYear.toString()}
-                onValueChange={(value) => updateInput('closureYear', parseInt(value))}
+                onValueChange={(value) =>
+                  updateInput("closureYear", Number.parseInt(value))
+                }
               >
                 <SelectTrigger id="closureYear">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Array.from({ length: numberOfYears }, (_, i) => i + 1).map((year) => (
-                    <SelectItem key={year} value={year.toString()}>
-                      Year {year}
-                    </SelectItem>
-                  ))}
+                  {Array.from({ length: numberOfYears }, (_, i) => i + 1).map(
+                    (year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        Year {year}
+                      </SelectItem>
+                    ),
+                  )}
                 </SelectContent>
               </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="equityRatio" className="flex items-center gap-2">
-                Equity Ratio (%)
-                <InfoTooltip content={GLOSSARY.equityRatio} />
-              </Label>
-              <Input
-                id="equityRatio"
-                type="number"
-                min="0"
-                max="100"
-                step="1"
-                value={inputs.equityRatio}
-                onChange={(e) => updateInput('equityRatio', parseFloat(e.target.value) || 0)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="interestRate" className="flex items-center gap-2">
-                Interest Rate (%)
-                <InfoTooltip content={GLOSSARY.interestRate} />
-              </Label>
-              <Input
-                id="interestRate"
-                type="number"
-                min="0"
-                step="0.1"
-                value={inputs.interestRate}
-                onChange={(e) => updateInput('interestRate', parseFloat(e.target.value) || 0)}
-              />
             </div>
           </div>
         </div>

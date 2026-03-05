@@ -1,18 +1,29 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { useScenarios } from '../../contexts/ScenarioContext';
-import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { useScenarios } from "../../contexts/ScenarioContext";
 
 interface ScenarioEditorProps {
-  scenario: 'base' | 'optimistic' | 'pessimistic';
+  scenario: "base" | "optimistic" | "pessimistic";
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export default function ScenarioEditor({ scenario, open, onOpenChange }: ScenarioEditorProps) {
+export default function ScenarioEditor({
+  scenario,
+  open,
+  onOpenChange,
+}: ScenarioEditorProps) {
   const { scenarioAdjustments, updateScenarioAdjustment } = useScenarios();
   const [adjustments, setAdjustments] = useState(scenarioAdjustments[scenario]);
 
@@ -22,14 +33,16 @@ export default function ScenarioEditor({ scenario, open, onOpenChange }: Scenari
 
   const handleSave = () => {
     updateScenarioAdjustment(scenario, adjustments);
-    toast.success(`${scenario.charAt(0).toUpperCase() + scenario.slice(1)} scenario updated`);
+    toast.success(
+      `${scenario.charAt(0).toUpperCase() + scenario.slice(1)} scenario updated`,
+    );
     onOpenChange(false);
   };
 
   const scenarioLabels = {
-    base: 'Base Case',
-    optimistic: 'Optimistic Case',
-    pessimistic: 'Pessimistic Case',
+    base: "Base Case",
+    optimistic: "Optimistic Case",
+    pessimistic: "Pessimistic Case",
   };
 
   return (
@@ -49,7 +62,12 @@ export default function ScenarioEditor({ scenario, open, onOpenChange }: Scenari
               type="number"
               step="1"
               value={adjustments.commodityPrice}
-              onChange={(e) => setAdjustments({ ...adjustments, commodityPrice: parseFloat(e.target.value) || 0 })}
+              onChange={(e) =>
+                setAdjustments({
+                  ...adjustments,
+                  commodityPrice: Number.parseFloat(e.target.value) || 0,
+                })
+              }
             />
           </div>
 
@@ -59,7 +77,12 @@ export default function ScenarioEditor({ scenario, open, onOpenChange }: Scenari
               type="number"
               step="1"
               value={adjustments.oreGrade}
-              onChange={(e) => setAdjustments({ ...adjustments, oreGrade: parseFloat(e.target.value) || 0 })}
+              onChange={(e) =>
+                setAdjustments({
+                  ...adjustments,
+                  oreGrade: Number.parseFloat(e.target.value) || 0,
+                })
+              }
             />
           </div>
 
@@ -69,7 +92,12 @@ export default function ScenarioEditor({ scenario, open, onOpenChange }: Scenari
               type="number"
               step="1"
               value={adjustments.recoveryRate}
-              onChange={(e) => setAdjustments({ ...adjustments, recoveryRate: parseFloat(e.target.value) || 0 })}
+              onChange={(e) =>
+                setAdjustments({
+                  ...adjustments,
+                  recoveryRate: Number.parseFloat(e.target.value) || 0,
+                })
+              }
             />
           </div>
 
@@ -79,7 +107,12 @@ export default function ScenarioEditor({ scenario, open, onOpenChange }: Scenari
               type="number"
               step="1"
               value={adjustments.capex}
-              onChange={(e) => setAdjustments({ ...adjustments, capex: parseFloat(e.target.value) || 0 })}
+              onChange={(e) =>
+                setAdjustments({
+                  ...adjustments,
+                  capex: Number.parseFloat(e.target.value) || 0,
+                })
+              }
             />
           </div>
 
@@ -89,7 +122,12 @@ export default function ScenarioEditor({ scenario, open, onOpenChange }: Scenari
               type="number"
               step="1"
               value={adjustments.opex}
-              onChange={(e) => setAdjustments({ ...adjustments, opex: parseFloat(e.target.value) || 0 })}
+              onChange={(e) =>
+                setAdjustments({
+                  ...adjustments,
+                  opex: Number.parseFloat(e.target.value) || 0,
+                })
+              }
             />
           </div>
         </div>
@@ -98,9 +136,7 @@ export default function ScenarioEditor({ scenario, open, onOpenChange }: Scenari
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>
-            Save Changes
-          </Button>
+          <Button onClick={handleSave}>Save Changes</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

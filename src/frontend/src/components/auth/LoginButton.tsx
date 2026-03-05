@@ -1,26 +1,26 @@
-import { useInternetIdentity } from '../../hooks/useInternetIdentity';
-import { useQueryClient } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { LogIn, LogOut, Loader2 } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { useQueryClient } from "@tanstack/react-query";
+import { Loader2, LogIn, LogOut } from "lucide-react";
+import { useInternetIdentity } from "../../hooks/useInternetIdentity";
 
 export default function LoginButton() {
   const { login, clear, loginStatus, identity } = useInternetIdentity();
   const queryClient = useQueryClient();
 
   const isAuthenticated = !!identity;
-  const disabled = loginStatus === 'logging-in';
+  const disabled = loginStatus === "logging-in";
 
   const handleAuth = async () => {
     if (isAuthenticated) {
       await clear();
       queryClient.clear();
-      window.location.hash = '/login';
+      window.location.hash = "/login";
     } else {
       try {
         await login();
       } catch (error: any) {
-        console.error('Login error:', error);
-        if (error.message === 'User is already authenticated') {
+        console.error("Login error:", error);
+        if (error.message === "User is already authenticated") {
           await clear();
           setTimeout(() => login(), 300);
         }
@@ -32,7 +32,7 @@ export default function LoginButton() {
     <Button
       onClick={handleAuth}
       disabled={disabled}
-      variant={isAuthenticated ? 'outline' : 'default'}
+      variant={isAuthenticated ? "outline" : "default"}
       size="sm"
       className="gap-2"
     >

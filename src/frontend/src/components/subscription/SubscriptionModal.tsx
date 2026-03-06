@@ -151,8 +151,8 @@ export default function SubscriptionModal({
               </div>
               <CardTitle className="text-lg">Premium Tier</CardTitle>
               <CardDescription>
-                <span className="text-2xl font-bold text-foreground">$235</span>
-                <span className="text-muted-foreground"> / year</span>
+                <span className="text-2xl font-bold text-foreground">$12</span>
+                <span className="text-muted-foreground"> / month</span>
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -185,7 +185,7 @@ export default function SubscriptionModal({
                   ) : (
                     <>
                       <Crown className="w-4 h-4 mr-2" />
-                      Upgrade to Premium — $235/year
+                      Upgrade to Premium — $12/month
                     </>
                   )}
                 </Button>

@@ -10,10 +10,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Check } from "lucide-react";
+import { Check, Crown, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import type { SubscriptionTier, UserProfile } from "../../backend";
+import { useCreateCheckoutSession } from "../../hooks/useCreateCheckoutSession";
 import { useSaveCallerUserProfile } from "../../hooks/useQueries";
 
 export default function ProfileSetupModal() {
@@ -22,6 +23,7 @@ export default function ProfileSetupModal() {
   const [organization, setOrganization] = useState("");
   const [selectedTier, setSelectedTier] = useState<"free" | "premium">("free");
   const saveProfile = useSaveCallerUserProfile();
+  const createCheckoutSession = useCreateCheckoutSession();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,23 +33,49 @@ export default function ProfileSetupModal() {
       return;
     }
 
+    // If premium is selected, first save profile as free tier then redirect to Stripe
+    if (selectedTier === "premium") {
+      try {
+        // Save profile with free tier first so the user exists in the system
+        const freeTier: SubscriptionTier = {
+          __kind__: "free",
+          free: {
+            MAX_OPERATIONS_PDF_AND_CSV: BigInt(2),
+            CSV_AND_PDF_COMBINED_MAX: BigInt(2),
+          },
+        };
+        const newProfile: UserProfile = {
+          name: name.trim(),
+          email: email.trim() || undefined,
+          organization: organization.trim() || undefined,
+          tier: freeTier,
+          modelsCreatedAnnual: BigInt(0),
+          exportsRemainingAnnual: BigInt(2),
+          lastResetTimestamp: BigInt(Date.now() * 1000000),
+          romUsageCount: BigInt(0),
+        };
+        await saveProfile.mutateAsync(newProfile);
+        // Then redirect to Stripe checkout
+        await createCheckoutSession.mutateAsync();
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+        toast.error(
+          `Failed to start checkout. Please try again. ${errorMessage}`,
+        );
+        console.error(error);
+      }
+      return;
+    }
+
     try {
-      const tier: SubscriptionTier =
-        selectedTier === "free"
-          ? {
-              __kind__: "free",
-              free: {
-                MAX_OPERATIONS_PDF_AND_CSV: BigInt(2),
-                CSV_AND_PDF_COMBINED_MAX: BigInt(2),
-              },
-            }
-          : {
-              __kind__: "premium",
-              premium: {
-                MAX_OPERATIONS_PDF_AND_CSV: BigInt(300),
-                CSV_AND_PDF_COMBINED_MAX: BigInt(1000),
-              },
-            };
+      const tier: SubscriptionTier = {
+        __kind__: "free",
+        free: {
+          MAX_OPERATIONS_PDF_AND_CSV: BigInt(2),
+          CSV_AND_PDF_COMBINED_MAX: BigInt(2),
+        },
+      };
 
       const newProfile: UserProfile = {
         name: name.trim(),
@@ -55,8 +83,7 @@ export default function ProfileSetupModal() {
         organization: organization.trim() || undefined,
         tier,
         modelsCreatedAnnual: BigInt(0),
-        exportsRemainingAnnual:
-          selectedTier === "free" ? BigInt(2) : BigInt(1000),
+        exportsRemainingAnnual: BigInt(2),
         lastResetTimestamp: BigInt(Date.now() * 1000000),
         romUsageCount: BigInt(0),
       };
@@ -68,6 +95,8 @@ export default function ProfileSetupModal() {
       console.error(error);
     }
   };
+
+  const isProcessing = saveProfile.isPending || createCheckoutSession.isPending;
 
   return (
     <Dialog open={true}>
@@ -128,6 +157,8 @@ export default function ProfileSetupModal() {
             >
               <Card
                 className={`cursor-pointer transition-all ${selectedTier === "free" ? "border-primary ring-2 ring-primary" : "border-border"}`}
+                data-ocid="profile.free_tier.card"
+                onClick={() => setSelectedTier("free")}
               >
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
@@ -148,7 +179,7 @@ export default function ProfileSetupModal() {
                         <ul className="space-y-1.5 text-sm text-muted-foreground">
                           <li className="flex items-start gap-2">
                             <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                            <span>3 models per year</span>
+                            <span>3 ROM Edits</span>
                           </li>
                           <li className="flex items-start gap-2">
                             <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
@@ -167,6 +198,8 @@ export default function ProfileSetupModal() {
 
               <Card
                 className={`cursor-pointer transition-all ${selectedTier === "premium" ? "border-primary ring-2 ring-primary" : "border-border"}`}
+                data-ocid="profile.premium_tier.card"
+                onClick={() => setSelectedTier("premium")}
               >
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
@@ -182,16 +215,16 @@ export default function ProfileSetupModal() {
                             Premium Tier
                           </span>
                           <span className="text-2xl font-bold">
-                            $235
+                            $12
                             <span className="text-sm text-muted-foreground">
-                              /year
+                              /month
                             </span>
                           </span>
                         </div>
                         <ul className="space-y-1.5 text-sm text-muted-foreground">
                           <li className="flex items-start gap-2">
                             <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                            <span>300 models per year</span>
+                            <span>Unlimited ROM Edits</span>
                           </li>
                           <li className="flex items-start gap-2">
                             <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
@@ -221,9 +254,24 @@ export default function ProfileSetupModal() {
           <Button
             type="submit"
             className="w-full"
-            disabled={saveProfile.isPending}
+            disabled={isProcessing}
+            data-ocid="profile.submit_button"
           >
-            {saveProfile.isPending ? "Creating Profile..." : "Create Profile"}
+            {isProcessing ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                {selectedTier === "premium"
+                  ? "Redirecting to Stripe..."
+                  : "Creating Profile..."}
+              </>
+            ) : selectedTier === "premium" ? (
+              <>
+                <Crown className="w-4 h-4 mr-2" />
+                Continue to Premium — $12/month
+              </>
+            ) : (
+              "Create Free Profile"
+            )}
           </Button>
         </form>
       </DialogContent>

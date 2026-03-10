@@ -215,75 +215,45 @@ actor {
     };
 
     log("Starting checkout session for caller with " # items.size().toText() # " items");
-    let stripeConfig = getStripeConfiguration();
-    let itemsText = stringifyShoppingItems(items);
-    let requestSummary = "Request to Stripe with config: " # stripeConfig.secretKey # " | Items: " # itemsText # " | Success URL: " # successUrl # " | Cancel URL: " # cancelUrl;
-    log(requestSummary);
+    let config = getStripeConfiguration();
 
     try {
-      let sessionResponse = await Stripe.createCheckoutSession(stripeConfig, caller, items, successUrl, cancelUrl, transform);
-      log("Checkout session created successfully. Response: " # sessionResponse);
+      let sessionResponse = await Stripe.createCheckoutSession(config, caller, items, successUrl, cancelUrl, transform);
+      log("Checkout session created successfully.");
       sessionResponse;
     } catch (_) {
       let errorMessage = "Checkout session creation failed.";
-      log(errorMessage # " Persistent log added before trap.");
+      log(errorMessage);
       Runtime.trap(errorMessage);
     };
   };
 
-  // New function to create checkout session for premium subscription
-  public shared ({ caller }) func createPremiumCheckoutSession() : async Text {
+  // Creates a Stripe Checkout session for the Premium Tier subscription ($12/month).
+  // Uses the Stripe Price ID directly (mode=subscription) so the correct price
+  // is shown on the Stripe-hosted checkout page.
+  // successUrl and cancelUrl are passed from the frontend using window.location.origin
+  // so redirects land on the correct domain after payment.
+  public shared ({ caller }) func createPremiumCheckoutSession(successUrl : Text, cancelUrl : Text) : async Text {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can create checkout sessions");
     };
 
-    let items : [Stripe.ShoppingItem] = [{
-      currency = "usd";
-      productName = "Premium Subscription";
-      productDescription = "Access to premium features";
-      priceInCents = 23_500; // Corrected price to $235
-      quantity = 1;
-    }];
-
-    let successUrl = "https://app.runtime-mining.com/payment-success";
-    let cancelUrl = "https://app.runtime-mining.com/payment-failure";
-
-    log("Starting premium checkout session for caller with 1 item");
-    let stripeConfig : Stripe.StripeConfiguration = {
-      secretKey = "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";
-      allowedCountries = [
-        "AU",
-        "US",
-        "GB",
-        "CA",
-        "NZ",
-        "ZA",
-        "SG",
-        "IN",
-        "DE",
-        "FR",
-        "ES",
-        "DK",
-        "EE",
-        "FI",
-        "IE",
-        "LU",
-        "NL",
-        "NO",
-        "SE",
-      ];
+    let stripeSecretKey = "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";
+    let config : Stripe.StripeConfiguration = {
+      secretKey = stripeSecretKey;
+      allowedCountries = [];
     };
-    let itemsText = stringifyShoppingItems(items);
-    let requestSummary = "Request to Stripe with default config | Items: " # itemsText # " | Success URL: " # successUrl # " | Cancel URL: " # cancelUrl;
-    log(requestSummary);
+    // Premium Tier Price ID: $12/month subscription
+    let priceId = "price_1T7ZMRHkLCsqzrQ2PzhJm1ME";
 
+    log("Starting premium subscription checkout session");
     try {
-      let sessionResponse = await Stripe.createCheckoutSession(stripeConfig, caller, items, successUrl, cancelUrl, transform);
-      log("Premium checkout session created successfully. Response: " # sessionResponse);
+      let sessionResponse = await Stripe.createSubscriptionCheckoutSession(config, caller, priceId, successUrl, cancelUrl, transform);
+      log("Premium checkout session created successfully.");
       sessionResponse;
     } catch (_) {
       let errorMessage = "Premium checkout session creation failed.";
-      log(errorMessage # " Persistent log added before trap.");
+      log(errorMessage);
       Runtime.trap(errorMessage);
     };
   };
@@ -509,7 +479,11 @@ actor {
 
     let updatedProfile = {
       profile with
-      exportsRemainingAnnual = profile.exportsRemainingAnnual - 1;
+      exportsRemainingAnnual = if (profile.exportsRemainingAnnual > 0) {
+        profile.exportsRemainingAnnual - 1;
+      } else {
+        0;
+      };
     };
     userProfiles.add(caller, updatedProfile);
   };
@@ -559,8 +533,6 @@ actor {
   // ROM (Annual Tonnage Schedule) Usage Tracking
 
   // Returns the ROM usage count for the calling user.
-  // Requires #user permission: guests/anonymous principals are not allowed
-  // to access profile data.
   public query ({ caller }) func getRomUsageCount() : async Nat {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view ROM usage count");
@@ -572,9 +544,6 @@ actor {
   };
 
   // Increments the ROM usage count for the calling user.
-  // Requires #user permission.
-  // Free Tier users are capped at 3 ROM uses; basic and premium tiers use
-  // their respective MAX_OPERATIONS_PDF_AND_CSV limit.
   public shared ({ caller }) func incrementRomUsage() : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can increment ROM usage");
@@ -583,8 +552,6 @@ actor {
     switch (userProfiles.get(caller)) {
       case (null) { Runtime.trap("User profile not found") };
       case (?profile) {
-        // Free Tier is capped at 3 ROM uses as per the application intent.
-        // Basic and premium tiers use their MAX_OPERATIONS_PDF_AND_CSV limit.
         let maxRomUsage : Nat = switch (profile.tier) {
           case (#free(_)) { 3 };
           case (#basic({ MAX_OPERATIONS_PDF_AND_CSV })) { MAX_OPERATIONS_PDF_AND_CSV };
@@ -622,4 +589,3 @@ actor {
     };
   };
 };
-

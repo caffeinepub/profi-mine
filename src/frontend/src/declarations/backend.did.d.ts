@@ -101,7 +101,7 @@ export interface _SERVICE {
     [Array<ShoppingItem>, string, string],
     string
   >,
-  'createPremiumCheckoutSession' : ActorMethod<[], string>,
+  'createPremiumCheckoutSession' : ActorMethod<[string, string], string>,
   'decrementExportCount' : ActorMethod<[], undefined>,
   'deleteProject' : ActorMethod<[Uint8Array], undefined>,
   'fullResetExports' : ActorMethod<[Principal], undefined>,

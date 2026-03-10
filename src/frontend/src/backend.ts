@@ -203,7 +203,7 @@ export interface backendInterface {
     canExport(): Promise<boolean>;
     clearPersistentLogs(): Promise<void>;
     createCheckoutSession(items: Array<ShoppingItem>, successUrl: string, cancelUrl: string): Promise<string>;
-    createPremiumCheckoutSession(): Promise<string>;
+    createPremiumCheckoutSession(successUrl: string, cancelUrl: string): Promise<string>;
     decrementExportCount(): Promise<void>;
     deleteProject(id: Uint8Array): Promise<void>;
     fullResetExports(principalId: Principal): Promise<void>;
@@ -306,17 +306,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async createPremiumCheckoutSession(): Promise<string> {
+    async createPremiumCheckoutSession(arg0: string, arg1: string): Promise<string> {
         if (this.processError) {
             try {
-                const result = await this.actor.createPremiumCheckoutSession();
+                const result = await this.actor.createPremiumCheckoutSession(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.createPremiumCheckoutSession();
+            const result = await this.actor.createPremiumCheckoutSession(arg0, arg1);
             return result;
         }
     }

@@ -38,11 +38,19 @@ const paymentFailureRoute = createRoute({
   component: PaymentFailure,
 });
 
+// Alias route so Stripe cancel_url "/payment-cancel" also resolves correctly
+const paymentCancelRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/payment-cancel",
+  component: PaymentFailure,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   dashboardRoute,
   paymentSuccessRoute,
   paymentFailureRoute,
+  paymentCancelRoute,
 ]);
 
 const router = createRouter({ routeTree });

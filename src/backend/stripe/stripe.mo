@@ -29,6 +29,17 @@ module {
     };
   };
 
+  // Creates a Stripe Checkout session in subscription mode using an existing Price ID.
+  // This is the correct way to reference a pre-configured Stripe price (e.g. $12/month).
+  public func createSubscriptionCheckoutSession(configuration : StripeConfiguration, caller : Principal, priceId : Text, successUrl : Text, cancelUrl : Text, transform : OutCall.Transform) : async Text {
+    let requestBody = buildSubscriptionCheckoutSessionBody(priceId, successUrl, cancelUrl, ?caller.toText());
+    try {
+      await callStripe(configuration, "v1/checkout/sessions", #post, ?requestBody, transform);
+    } catch (error) {
+      Runtime.trap("Failed to create subscription checkout session: " # error.message());
+    };
+  };
+
   public type StripeSessionStatus = {
     #failed : { error : Text };
     #completed : { response : Text; userPrincipal : ?Text };
@@ -102,6 +113,23 @@ module {
     for (country in allowedCountries.vals()) {
       params.add("shipping_address_collection[allowed_countries][0]=" # urlEncode(country));
     };
+    switch (clientReferenceId) {
+      case (?id) { params.add("client_reference_id=" # urlEncode(id)) };
+      case (null) {};
+    };
+    params.values().join("&");
+  };
+
+  // Builds a Stripe Checkout session body for subscription mode using a Price ID.
+  // This references an existing Stripe price (e.g. price_1T7ZMRHkLCsqzrQ2PzhJm1ME)
+  // instead of creating price_data on the fly.
+  func buildSubscriptionCheckoutSessionBody(priceId : Text, successUrl : Text, cancelUrl : Text, clientReferenceId : ?Text) : Text {
+    let params = List.empty<Text>();
+    params.add("line_items[0][price]=" # urlEncode(priceId));
+    params.add("line_items[0][quantity]=1");
+    params.add("mode=subscription");
+    params.add("success_url=" # urlEncode(successUrl));
+    params.add("cancel_url=" # urlEncode(cancelUrl));
     switch (clientReferenceId) {
       case (?id) { params.add("client_reference_id=" # urlEncode(id)) };
       case (null) {};

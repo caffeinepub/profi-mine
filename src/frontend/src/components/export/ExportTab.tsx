@@ -1,5 +1,4 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,23 +7,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  AlertCircle,
-  Download,
-  FileSpreadsheet,
-  Image,
-  Info,
-} from "lucide-react";
+import { Download, FileSpreadsheet, Image, Info } from "lucide-react";
 import { toast } from "sonner";
-import { useProject } from "../../contexts/ProjectContext";
 import { useExcelExport } from "../../hooks/useExcelExport";
 
 export default function ExportTab() {
   const { exportToExcel, isExporting: isExportingExcel } = useExcelExport();
-  const { subscriptionTier, exportsRemaining } = useProject();
-
-  const isFree = subscriptionTier === "free";
-  const exportsExhausted = isFree && exportsRemaining === 0;
 
   const handleExcelExport = async () => {
     try {
@@ -48,41 +36,12 @@ export default function ExportTab() {
         </AlertDescription>
       </Alert>
 
-      {/* Export Limit Warning for Free Tier */}
-      {isFree && (
-        <Alert variant={exportsExhausted ? "destructive" : "default"}>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            {exportsExhausted ? (
-              <span>
-                You have used all your free exports.{" "}
-                <strong>Upgrade to Premium for unlimited exports.</strong>
-              </span>
-            ) : (
-              <span>
-                <strong>Exports remaining: {exportsRemaining} / 2</strong>.
-                Upgrade to Premium for unlimited exports.
-              </span>
-            )}
-          </AlertDescription>
-        </Alert>
-      )}
-
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Export Options</CardTitle>
-              <CardDescription>
-                Download your financial projections in various formats
-              </CardDescription>
-            </div>
-            {isFree && (
-              <Badge variant={exportsExhausted ? "destructive" : "outline"}>
-                {exportsRemaining} / 2 exports
-              </Badge>
-            )}
-          </div>
+          <CardTitle>Export Options</CardTitle>
+          <CardDescription>
+            Download your financial projections in various formats
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="border border-border rounded-lg p-6 space-y-3">
@@ -104,15 +63,12 @@ export default function ExportTab() {
             </p>
             <Button
               onClick={handleExcelExport}
-              disabled={isExportingExcel || exportsExhausted}
+              disabled={isExportingExcel}
               className="w-full"
+              data-ocid="export.csv.button"
             >
               <Download className="w-4 h-4 mr-2" />
-              {isExportingExcel
-                ? "Exporting..."
-                : exportsExhausted
-                  ? "No Exports Remaining"
-                  : "Export to CSV"}
+              {isExportingExcel ? "Exporting..." : "Export to CSV"}
             </Button>
           </div>
 

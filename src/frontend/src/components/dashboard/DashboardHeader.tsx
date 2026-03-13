@@ -1,43 +1,22 @@
 import { Badge } from "@/components/ui/badge";
-import { HardHat, TrendingUp } from "lucide-react";
+import { HardHat, Pickaxe, User } from "lucide-react";
 import { useState } from "react";
 import { useProject } from "../../contexts/ProjectContext";
 import LoginButton from "../auth/LoginButton";
+import ProfilePage from "../auth/ProfilePage";
 import SubscriptionModal from "../subscription/SubscriptionModal";
-
-const FREE_TIER_ROM_LIMIT = 3;
 
 export default function DashboardHeader() {
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [showProfilePage, setShowProfilePage] = useState(false);
   const {
     projectName,
-    subscriptionTier,
+    subscriptionLoading,
+    romUsageCount,
     usageCount,
     usageLimit,
     exportsRemaining,
-    subscriptionLoading,
-    romUsageCount,
   } = useProject();
-
-  const isFree = subscriptionTier === "free";
-  const isPremium = subscriptionTier === "premium";
-  const displayTier = isPremium
-    ? "Premium"
-    : subscriptionTier === "free"
-      ? "Free"
-      : subscriptionTier;
-
-  // ROM Tonnage usage for free tier
-  const romLimit = FREE_TIER_ROM_LIMIT;
-  const romAtLimit = isFree && romUsageCount >= romLimit;
-  const romNearLimit = isFree && romUsageCount >= romLimit - 1;
-
-  // Export usage indicator
-  const exportsAtLimit = isFree && exportsRemaining <= 0;
-
-  // Overall alert state
-  const isAtLimit = romAtLimit || exportsAtLimit;
-  const isNearLimit = romNearLimit || (isFree && exportsRemaining <= 1);
 
   return (
     <>
@@ -61,66 +40,39 @@ export default function DashboardHeader() {
               </div>
             </div>
 
-            {/* Subscription Info & Actions */}
+            {/* Actions */}
             <div className="flex items-center gap-2">
-              {/* Subscription Usage Display */}
+              {/* Plan badge */}
               {!subscriptionLoading && (
                 <button
                   type="button"
                   onClick={() => setShowSubscriptionModal(true)}
                   className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer"
+                  data-ocid="header.plan.button"
                 >
-                  <TrendingUp
-                    className={`w-4 h-4 ${
-                      isAtLimit
-                        ? "text-destructive"
-                        : isNearLimit
-                          ? "text-warning"
-                          : "text-muted-foreground"
-                    }`}
-                  />
+                  <Pickaxe className="w-4 h-4 text-muted-foreground" />
                   <div className="text-left">
-                    <p className="text-xs text-muted-foreground">
-                      Models &amp; Exports
+                    <p className="text-xs text-muted-foreground">Plan</p>
+                    <p className="text-sm font-medium text-foreground">
+                      Exploration Tier
                     </p>
-                    {isFree ? (
-                      <div className="flex flex-col gap-0.5">
-                        <p
-                          className={`text-sm font-medium leading-tight ${
-                            romAtLimit
-                              ? "text-destructive"
-                              : romNearLimit
-                                ? "text-warning"
-                                : "text-foreground"
-                          }`}
-                        >
-                          {romUsageCount}/{romLimit} ROM Tonnage Edits
-                        </p>
-                        <p
-                          className={`text-xs leading-tight ${
-                            exportsAtLimit
-                              ? "text-destructive"
-                              : "text-muted-foreground"
-                          }`}
-                        >
-                          {exportsRemaining}/2 exports left
-                        </p>
-                      </div>
-                    ) : (
-                      <p className="text-sm font-medium text-foreground">
-                        Unlimited ROM Tonnage &middot; {exportsRemaining}{" "}
-                        exports left
-                      </p>
-                    )}
                   </div>
-                  <Badge
-                    variant={isAtLimit ? "destructive" : "outline"}
-                    className="text-xs"
-                  >
-                    {displayTier}
+                  <Badge variant="outline" className="text-xs">
+                    Active
                   </Badge>
                 </button>
               )}
+
+              {/* My Profile Button */}
+              <button
+                type="button"
+                data-ocid="header.profile_button"
+                onClick={() => setShowProfilePage(true)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer text-sm font-medium text-foreground"
+              >
+                <User className="w-4 h-4" />
+                <span className="hidden sm:inline">My Profile</span>
+              </button>
 
               <LoginButton />
             </div>
@@ -131,13 +83,14 @@ export default function DashboardHeader() {
       <SubscriptionModal
         open={showSubscriptionModal}
         onOpenChange={setShowSubscriptionModal}
-        currentTier={displayTier}
+        currentTier="Exploration"
         usageCount={usageCount}
         usageLimit={usageLimit}
         exportsRemaining={exportsRemaining}
         romUsageCount={romUsageCount}
-        romLimit={FREE_TIER_ROM_LIMIT}
       />
+
+      <ProfilePage open={showProfilePage} onOpenChange={setShowProfilePage} />
     </>
   );
 }

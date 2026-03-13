@@ -11,10 +11,10 @@ import Order "mo:core/Order";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
 import OutCall "http-outcalls/outcall";
-import MixinAuthorization "authorization/MixinAuthorization";
-import AccessControl "authorization/access-control";
 
-// Persistent data types for exports and database projects
+import AccessControl "authorization/access-control";
+import MixinAuthorization "authorization/MixinAuthorization";
+
 
 actor {
   // For front-end queries
@@ -42,6 +42,7 @@ actor {
     exportsRemainingAnnual : Nat;
     lastResetTimestamp : Int;
     romUsageCount : Nat;
+    isActive : Bool; // Added for admin user management
   };
 
   // Export (non-db) projects to persistent storage
@@ -165,6 +166,49 @@ actor {
     ];
   };
 
+  // USER MANAGEMENT SECTION
+
+  // Admin endpoint to get all user profiles
+  public query ({ caller }) func getAllUserProfiles() : async [(Text, UserProfile)] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can view all user profiles");
+    };
+
+    userProfiles.entries().toArray().map(
+      func(entry) {
+        let (principal, profile) = entry;
+        (principal.toText(), profile);
+      }
+    );
+  };
+
+  // Admin endpoint to set user active status
+  public shared ({ caller }) func setUserActiveStatus(userId : Text, active : Bool) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can set user active status");
+    };
+
+    let userPrincipal = Principal.fromText(userId);
+
+    switch (userProfiles.get(userPrincipal)) {
+      case (null) { Runtime.trap("User profile not found") };
+      case (?profile) {
+        let updatedProfile = { profile with isActive = active };
+        userProfiles.add(userPrincipal, updatedProfile);
+      };
+    };
+  };
+
+  // User endpoint to check if current user is active
+  public query ({ caller }) func isCurrentUserActive() : async Bool {
+    switch (userProfiles.get(caller)) {
+      case (null) { true }; // Return true if not found to avoid blocking unauthenticated users
+      case (?profile) { profile.isActive };
+    };
+  };
+
+  // USER MANAGEMENT SECTION END
+
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access profiles");
@@ -248,7 +292,14 @@ actor {
 
     log("Starting premium subscription checkout session");
     try {
-      let sessionResponse = await Stripe.createSubscriptionCheckoutSession(config, caller, priceId, successUrl, cancelUrl, transform);
+      let premiumItem : Stripe.ShoppingItem = {
+        productName = "ProFi Mine Premium";
+        productDescription = "Unlimited ROM Edits, unlimited CSV exports, and advanced features";
+        currency = "usd";
+        priceInCents = 1200;
+        quantity = 1;
+      };
+      let sessionResponse = await Stripe.createCheckoutSession(config, caller, [premiumItem], successUrl, cancelUrl, transform);
       log("Premium checkout session created successfully.");
       sessionResponse;
     } catch (_) {
@@ -473,6 +524,11 @@ actor {
     };
     let profile = getOrResetUserProfile(caller);
 
+    // Check if user is active before allowing export decrement
+    if (not profile.isActive) {
+      Runtime.trap("Your account has been deactivated. Please contact support.");
+    };
+
     if (profile.exportsRemainingAnnual <= 0) {
       Runtime.trap("No remaining exports for this year");
     };
@@ -480,7 +536,7 @@ actor {
     let updatedProfile = {
       profile with
       exportsRemainingAnnual = if (profile.exportsRemainingAnnual > 0) {
-        profile.exportsRemainingAnnual - 1;
+        profile.exportsRemainingAnnual - 1 : Nat;
       } else {
         0;
       };
@@ -552,6 +608,11 @@ actor {
     switch (userProfiles.get(caller)) {
       case (null) { Runtime.trap("User profile not found") };
       case (?profile) {
+        // Check if user is active before allowing ROM usage increment
+        if (not profile.isActive) {
+          Runtime.trap("Your account has been deactivated. Please contact support.");
+        };
+
         let maxRomUsage : Nat = switch (profile.tier) {
           case (#free(_)) { 3 };
           case (#basic({ MAX_OPERATIONS_PDF_AND_CSV })) { MAX_OPERATIONS_PDF_AND_CSV };

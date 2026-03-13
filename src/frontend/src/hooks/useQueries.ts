@@ -18,6 +18,8 @@ export function useGetCallerUserProfile() {
     queryKey: ["currentUserProfile"],
     queryFn: async () => {
       if (!actor) throw new Error("Actor not available");
+      // Register the caller first (first user becomes admin automatically)
+      await actor._initializeAccessControl();
       return actor.getCallerUserProfile();
     },
     enabled: !!actor && !actorFetching,

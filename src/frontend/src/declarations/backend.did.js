@@ -35,6 +35,7 @@ export const UserProfile = IDL.Record({
   'name' : IDL.Text,
   'tier' : SubscriptionTier,
   'modelsCreatedAnnual' : IDL.Nat,
+  'isActive' : IDL.Bool,
   'email' : IDL.Opt(IDL.Text),
   'romUsageCount' : IDL.Nat,
   'organization' : IDL.Opt(IDL.Text),
@@ -108,7 +109,7 @@ export const TransformationOutput = IDL.Record({
 });
 
 export const idlService = IDL.Service({
-  '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+  '_initializeAccessControl' : IDL.Func([], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'canExport' : IDL.Func([], [IDL.Bool], []),
   'clearPersistentLogs' : IDL.Func([], [], []),
@@ -117,10 +118,19 @@ export const idlService = IDL.Service({
       [IDL.Text],
       [],
     ),
-  'createPremiumCheckoutSession' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text], []),
+  'createPremiumCheckoutSession' : IDL.Func(
+      [IDL.Text, IDL.Text],
+      [IDL.Text],
+      [],
+    ),
   'decrementExportCount' : IDL.Func([], [], []),
   'deleteProject' : IDL.Func([IDL.Vec(IDL.Nat8)], [], []),
   'fullResetExports' : IDL.Func([IDL.Principal], [], []),
+  'getAllUserProfiles' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Tuple(IDL.Text, UserProfile))],
+      ['query'],
+    ),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getPersistentLogs' : IDL.Func(
@@ -159,6 +169,7 @@ export const idlService = IDL.Service({
   'handleStripeWebhook' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'incrementRomUsage' : IDL.Func([], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'isCurrentUserActive' : IDL.Func([], [IDL.Bool], ['query']),
   'isStripeConfigured' : IDL.Func([], [IDL.Bool], ['query']),
   'markUserAsPremium' : IDL.Func([], [], []),
   'refreshProjects' : IDL.Func([], [], []),
@@ -166,6 +177,7 @@ export const idlService = IDL.Service({
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'saveProject' : IDL.Func([MiningProject], [], []),
   'setStripeConfiguration' : IDL.Func([StripeConfiguration], [], []),
+  'setUserActiveStatus' : IDL.Func([IDL.Text, IDL.Bool], [], []),
   'transform' : IDL.Func(
       [TransformationInput],
       [TransformationOutput],
@@ -206,6 +218,7 @@ export const idlFactory = ({ IDL }) => {
     'name' : IDL.Text,
     'tier' : SubscriptionTier,
     'modelsCreatedAnnual' : IDL.Nat,
+    'isActive' : IDL.Bool,
     'email' : IDL.Opt(IDL.Text),
     'romUsageCount' : IDL.Nat,
     'organization' : IDL.Opt(IDL.Text),
@@ -273,7 +286,7 @@ export const idlFactory = ({ IDL }) => {
   });
   
   return IDL.Service({
-    '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+    '_initializeAccessControl' : IDL.Func([], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'canExport' : IDL.Func([], [IDL.Bool], []),
     'clearPersistentLogs' : IDL.Func([], [], []),
@@ -282,10 +295,19 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Text],
         [],
       ),
-    'createPremiumCheckoutSession' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text], []),
+    'createPremiumCheckoutSession' : IDL.Func(
+        [IDL.Text, IDL.Text],
+        [IDL.Text],
+        [],
+      ),
     'decrementExportCount' : IDL.Func([], [], []),
     'deleteProject' : IDL.Func([IDL.Vec(IDL.Nat8)], [], []),
     'fullResetExports' : IDL.Func([IDL.Principal], [], []),
+    'getAllUserProfiles' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Tuple(IDL.Text, UserProfile))],
+        ['query'],
+      ),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getPersistentLogs' : IDL.Func(
@@ -324,6 +346,7 @@ export const idlFactory = ({ IDL }) => {
     'handleStripeWebhook' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'incrementRomUsage' : IDL.Func([], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'isCurrentUserActive' : IDL.Func([], [IDL.Bool], ['query']),
     'isStripeConfigured' : IDL.Func([], [IDL.Bool], ['query']),
     'markUserAsPremium' : IDL.Func([], [], []),
     'refreshProjects' : IDL.Func([], [], []),
@@ -331,6 +354,7 @@ export const idlFactory = ({ IDL }) => {
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'saveProject' : IDL.Func([MiningProject], [], []),
     'setStripeConfiguration' : IDL.Func([StripeConfiguration], [], []),
+    'setUserActiveStatus' : IDL.Func([IDL.Text, IDL.Bool], [], []),
     'transform' : IDL.Func(
         [TransformationInput],
         [TransformationOutput],

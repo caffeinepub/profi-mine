@@ -7,6 +7,7 @@ import {
 import RootComponent from "./components/layout/RootComponent";
 import PaymentFailure from "./components/payment/PaymentFailure";
 import PaymentSuccess from "./components/payment/PaymentSuccess";
+import AdminDashboard from "./pages/AdminDashboard";
 import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
 
@@ -38,11 +39,16 @@ const paymentFailureRoute = createRoute({
   component: PaymentFailure,
 });
 
-// Alias route so Stripe cancel_url "/payment-cancel" also resolves correctly
 const paymentCancelRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/payment-cancel",
   component: PaymentFailure,
+});
+
+const adminRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin",
+  component: AdminDashboard,
 });
 
 const routeTree = rootRoute.addChildren([
@@ -51,6 +57,7 @@ const routeTree = rootRoute.addChildren([
   paymentSuccessRoute,
   paymentFailureRoute,
   paymentCancelRoute,
+  adminRoute,
 ]);
 
 const router = createRouter({ routeTree });

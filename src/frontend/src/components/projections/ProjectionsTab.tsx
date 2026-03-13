@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -5,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Printer } from "lucide-react";
 import { useProject } from "../../contexts/ProjectContext";
 import CostBreakdownPieChart from "../charts/CostBreakdownPieChart";
 import CumulativeCashFlowChart from "../charts/CumulativeCashFlowChart";
@@ -15,6 +17,10 @@ import SummaryKPIsTable from "./SummaryKPIsTable";
 
 export default function ProjectionsTab() {
   const { calculations } = useProject();
+
+  const handleSaveProjections = () => {
+    window.print();
+  };
 
   if (!calculations) {
     return (
@@ -32,6 +38,18 @@ export default function ProjectionsTab() {
       id="projections-content"
       data-printable="projections"
     >
+      {/* Save Projections button - hidden during print */}
+      <div className="flex justify-end no-print">
+        <Button
+          onClick={handleSaveProjections}
+          data-ocid="projections.save_button"
+          className="gap-2"
+        >
+          <Printer className="h-4 w-4" />
+          Save Projections
+        </Button>
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Summary KPIs</CardTitle>

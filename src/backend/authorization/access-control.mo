@@ -37,6 +37,23 @@ module {
     };
   };
 
+  // First principal that calls this becomes admin automatically (no token required).
+  // Subsequent callers are registered as regular users.
+  public func initializeFirstLogin(state : AccessControlState, caller : Principal) {
+    if (caller.isAnonymous()) { return };
+    switch (state.userRoles.get(caller)) {
+      case (?_) {}; // already registered, do nothing
+      case (null) {
+        if (not state.adminAssigned) {
+          state.userRoles.add(caller, #admin);
+          state.adminAssigned := true;
+        } else {
+          state.userRoles.add(caller, #user);
+        };
+      };
+    };
+  };
+
   public func getUserRole(state : AccessControlState, caller : Principal) : UserRole {
     if (caller.isAnonymous()) { return #guest };
     switch (state.userRoles.get(caller)) {

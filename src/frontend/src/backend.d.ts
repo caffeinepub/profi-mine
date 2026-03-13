@@ -106,6 +106,7 @@ export interface UserProfile {
     name: string;
     tier: SubscriptionTier;
     modelsCreatedAnnual: bigint;
+    isActive: boolean;
     email?: string;
     romUsageCount: bigint;
     organization?: string;
@@ -116,6 +117,7 @@ export enum UserRole {
     guest = "guest"
 }
 export interface backendInterface {
+    _initializeAccessControl(): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     canExport(): Promise<boolean>;
     clearPersistentLogs(): Promise<void>;
@@ -124,6 +126,7 @@ export interface backendInterface {
     decrementExportCount(): Promise<void>;
     deleteProject(id: Uint8Array): Promise<void>;
     fullResetExports(principalId: Principal): Promise<void>;
+    getAllUserProfiles(): Promise<Array<[string, UserProfile]>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getPersistentLogs(): Promise<Array<[bigint, LogEntry]>>;
@@ -138,6 +141,7 @@ export interface backendInterface {
     handleStripeWebhook(sessionId: string, eventType: string): Promise<void>;
     incrementRomUsage(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
+    isCurrentUserActive(): Promise<boolean>;
     isStripeConfigured(): Promise<boolean>;
     markUserAsPremium(): Promise<void>;
     refreshProjects(): Promise<void>;
@@ -145,6 +149,7 @@ export interface backendInterface {
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     saveProject(project: MiningProject): Promise<void>;
     setStripeConfiguration(config: StripeConfiguration): Promise<void>;
+    setUserActiveStatus(userId: string, active: boolean): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     updateSensitivityRange(setting: string, update: SensitivityRange): Promise<void>;
     updateSubscription(principalId: Principal): Promise<void>;

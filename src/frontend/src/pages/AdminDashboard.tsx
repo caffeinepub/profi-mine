@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -15,7 +16,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { HardHat, Loader2, Lock, RefreshCw, Users } from "lucide-react";
+import {
+  HardHat,
+  KeyRound,
+  Loader2,
+  Lock,
+  RefreshCw,
+  Users,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { UserProfile } from "../backend";
@@ -34,6 +42,14 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [tokenInput, setTokenInput] = useState("");
+  const [claiming, setClaiming] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlToken = params.get("token");
+    if (urlToken) setTokenInput(urlToken);
+  }, []);
 
   useEffect(() => {
     if (!actor || !identity) return;
@@ -70,6 +86,31 @@ export default function AdminDashboard() {
       toast.error("Failed to load users.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleClaimAdmin = async () => {
+    if (!actor || !tokenInput.trim()) {
+      toast.error("Please enter the admin token.");
+      return;
+    }
+    setClaiming(true);
+    try {
+      await actor._initializeAccessControlWithSecret(tokenInput.trim());
+      toast.success("Admin role claimed successfully!");
+      setIsAdmin(true);
+      loadUsers();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (msg.includes("already") || msg.includes("registered")) {
+        toast.error("Admin already assigned or account already registered.");
+      } else {
+        toast.error(
+          "Invalid token. Please check your CAFFEINE_ADMIN_TOKEN and try again.",
+        );
+      }
+    } finally {
+      setClaiming(false);
     }
   };
 
@@ -112,17 +153,58 @@ export default function AdminDashboard() {
   if (isAdmin === false) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-6">
-        <Card className="max-w-sm w-full">
-          <CardContent className="pt-6 text-center space-y-4">
-            <Lock className="w-10 h-10 text-destructive mx-auto" />
-            <div>
-              <p className="text-foreground font-semibold text-lg">
-                Access Denied
-              </p>
-              <p className="text-muted-foreground text-sm mt-1">
-                You do not have administrator privileges.
-              </p>
+        <Card className="max-w-md w-full" data-ocid="admin.claim.card">
+          <CardHeader className="text-center">
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[oklch(0.55_0.15_60)] to-[oklch(0.45_0.12_50)] flex items-center justify-center mx-auto mb-3">
+              <KeyRound className="w-7 h-7 text-white" />
             </div>
+            <CardTitle className="text-xl">Claim Admin Access</CardTitle>
+            <CardDescription>
+              Enter the admin token to register as the ProFi Mine administrator.
+              You can also pass it directly in the URL as{" "}
+              <code className="text-xs bg-muted px-1 py-0.5 rounded">
+                /admin?token=YOUR_TOKEN
+              </code>
+              .
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label
+                htmlFor="admin-token-input"
+                className="text-sm font-medium text-foreground"
+              >
+                Admin Token
+              </label>
+              <Input
+                type="password"
+                placeholder="Paste your CAFFEINE_ADMIN_TOKEN here"
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleClaimAdmin()}
+                id="admin-token-input"
+                data-ocid="admin.claim.input"
+              />
+            </div>
+            <Button
+              className="w-full"
+              onClick={handleClaimAdmin}
+              disabled={claiming || !tokenInput.trim()}
+              data-ocid="admin.claim.submit_button"
+            >
+              {claiming ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Claiming...
+                </>
+              ) : (
+                "Claim Admin Role"
+              )}
+            </Button>
+            <p className="text-xs text-muted-foreground text-center">
+              This can only be done once. Once claimed, your Internet Identity
+              becomes the permanent admin.
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -142,7 +224,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -171,7 +252,6 @@ export default function AdminDashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
-        {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card>
             <CardContent className="pt-6">
@@ -218,7 +298,6 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* User Table */}
         <Card>
           <CardHeader>
             <CardTitle>Users</CardTitle>

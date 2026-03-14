@@ -117,7 +117,7 @@ export enum UserRole {
     guest = "guest"
 }
 export interface backendInterface {
-    _initializeAccessControl(): Promise<void>;
+    _initializeAccessControlWithSecret(token: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     canExport(): Promise<boolean>;
     clearPersistentLogs(): Promise<void>;

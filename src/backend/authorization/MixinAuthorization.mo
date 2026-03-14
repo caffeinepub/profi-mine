@@ -3,18 +3,11 @@ import Prim "mo:prim";
 import Runtime "mo:core/Runtime";
 
 mixin (accessControlState : AccessControl.AccessControlState) {
-  // No-token initialization: first caller becomes admin, subsequent callers become users.
-  // This is the primary registration entry point used on every login.
-  public shared ({ caller }) func _initializeAccessControl() : async () {
-    AccessControl.initializeFirstLogin(accessControlState, caller);
-  };
-
-  // Token-based initialization (legacy / fallback).
+  // Initialize auth (first caller becomes admin, others become users)
   public shared ({ caller }) func _initializeAccessControlWithSecret(userSecret : Text) : async () {
     switch (Prim.envVar<system>("CAFFEINE_ADMIN_TOKEN")) {
       case (null) {
-        // If no env token is set, fall back to first-login logic
-        AccessControl.initializeFirstLogin(accessControlState, caller);
+        Runtime.trap("CAFFEINE_ADMIN_TOKEN environment variable is not set");
       };
       case (?adminToken) {
         AccessControl.initialize(accessControlState, caller, adminToken, userSecret);

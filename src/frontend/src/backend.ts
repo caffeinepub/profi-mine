@@ -199,7 +199,7 @@ export enum UserRole {
     guest = "guest"
 }
 export interface backendInterface {
-    _initializeAccessControl(): Promise<void>;
+    _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     canExport(): Promise<boolean>;
     clearPersistentLogs(): Promise<void>;
@@ -240,17 +240,17 @@ export interface backendInterface {
 import type { ExportLimit as _ExportLimit, MiningProject as _MiningProject, StripeSessionStatus as _StripeSessionStatus, SubscriptionTier as _SubscriptionTier, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
-    async _initializeAccessControl(): Promise<void> {
+    async _initializeAccessControlWithSecret(userSecret: string): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor._initializeAccessControl();
+                const result = await this.actor._initializeAccessControlWithSecret(userSecret);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor._initializeAccessControl();
+            const result = await this.actor._initializeAccessControlWithSecret(userSecret);
             return result;
         }
     }

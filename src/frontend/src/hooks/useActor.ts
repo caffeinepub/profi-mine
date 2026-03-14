@@ -24,14 +24,12 @@ export function useActor() {
         },
       };
 
-      const actor = await createActorWithConfig(actorOptions);
-      // Register the caller: first login becomes admin automatically, no token needed
-      await actor._initializeAccessControl();
-      return actor;
+      // Create actor for the authenticated user.
+      // Admin initialization (token claim) is handled separately in AdminDashboard.
+      return await createActorWithConfig(actorOptions);
     },
     // Only refetch when identity changes
     staleTime: Number.POSITIVE_INFINITY,
-    // This will cause the actor to be recreated when the identity changes
     enabled: true,
   });
 

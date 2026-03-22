@@ -118,6 +118,8 @@ export enum UserRole {
 }
 export interface backendInterface {
     _initializeAccessControlWithSecret(token: string): Promise<void>;
+    registerUser(): Promise<void>;
+    claimAdminWithPassword(password: string): Promise<boolean>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     canExport(): Promise<boolean>;
     clearPersistentLogs(): Promise<void>;

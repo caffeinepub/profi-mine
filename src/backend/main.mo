@@ -17,7 +17,6 @@ import MixinAuthorization "authorization/MixinAuthorization";
 
 
 actor {
-  // For front-end queries
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
@@ -32,7 +31,6 @@ actor {
     #free : ExportLimit;
   };
 
-  // Export (non-db) projects to persistent storage
   public type UserProfile = {
     name : Text;
     email : ?Text;
@@ -42,16 +40,14 @@ actor {
     exportsRemainingAnnual : Nat;
     lastResetTimestamp : Int;
     romUsageCount : Nat;
-    isActive : Bool; // Added for admin user management
+    isActive : Bool;
   };
 
-  // Export (non-db) projects to persistent storage
   type SensitivityRange = {
     min : Float;
     max : Float;
   };
 
-  // Export (non-db) projects to persistent storage
   type MiningProject = {
     id : Blob;
     name : Text;
@@ -83,20 +79,69 @@ actor {
     paybackPeriod : ?Float;
   };
 
-  // Log type for persistent messaging
   type LogEntry = {
     timestamp : Int;
     message : Text;
   };
 
-  // ACTOR STATE
+  // STABLE STORAGE
+  stable var _stableUserProfiles : [(Principal, UserProfile)] = [];
+  stable var _stableProjects : [(Blob, MiningProject)] = [];
+  stable var _stableSensitivityRanges : [(Text, SensitivityRange)] = [];
+  stable var _stablePersistentLog : [(Int, LogEntry)] = [];
+  stable var _stableAdminAssigned : Bool = false;
+  stable var _stableUserRoles : [(Principal, AccessControl.UserRole)] = [];
+  stable var _stableStripeConfigured : Bool = false;
+  stable var _stableStripeSecretKey : Text = "";
+  // Admin password stored in stable memory
+  stable var _adminPassword : Text = "k0R1@#ch_7251!";
+
   let projects = Map.empty<Blob, MiningProject>();
   let sensitivityRanges = Map.empty<Text, SensitivityRange>();
   let userProfiles = Map.empty<Principal, UserProfile>();
   let persistentLog = Map.empty<Int, LogEntry>();
   var stripeConfig : ?Stripe.StripeConfiguration = null;
 
-  // ACTOR STATE END
+  system func preupgrade() {
+    _stableUserProfiles := userProfiles.entries().toArray();
+    _stableProjects := projects.entries().toArray();
+    _stableSensitivityRanges := sensitivityRanges.entries().toArray();
+    _stablePersistentLog := persistentLog.entries().toArray();
+    _stableAdminAssigned := accessControlState.adminAssigned;
+    _stableUserRoles := accessControlState.userRoles.entries().toArray();
+    switch (stripeConfig) {
+      case (?config) {
+        _stableStripeConfigured := true;
+        _stableStripeSecretKey := config.secretKey;
+      };
+      case (null) {
+        _stableStripeConfigured := false;
+        _stableStripeSecretKey := "";
+      };
+    };
+  };
+
+  system func postupgrade() {
+    for ((k, v) in _stableUserProfiles.vals()) {
+      userProfiles.add(k, v);
+    };
+    for ((k, v) in _stableProjects.vals()) {
+      projects.add(k, v);
+    };
+    for ((k, v) in _stableSensitivityRanges.vals()) {
+      sensitivityRanges.add(k, v);
+    };
+    for ((k, v) in _stablePersistentLog.vals()) {
+      persistentLog.add(k, v);
+    };
+    accessControlState.adminAssigned := _stableAdminAssigned;
+    for ((p, r) in _stableUserRoles.vals()) {
+      accessControlState.userRoles.add(p, r);
+    };
+    if (_stableStripeConfigured and _stableStripeSecretKey != "") {
+      stripeConfig := ?{ secretKey = _stableStripeSecretKey; allowedCountries = [] };
+    };
+  };
 
   module ProjectComparisons {
     public func compareByName(a : MiningProject, b : MiningProject) : Order.Order {
@@ -112,19 +157,16 @@ actor {
     };
   };
 
-  // Helper function for persistent messaging
   func log(message : Text) {
     persistentLog.add(Time.now(), { timestamp = Time.now(); message });
   };
 
-  // Helper function to check if a year has passed since last reset
   func shouldResetAnnualCounter(lastResetTimestamp : Int) : Bool {
     let now = Time.now();
-    let nanosPerYear = 365 * 24 * 60 * 60 * 1_000_000_000; // Nanoseconds in a year
+    let nanosPerYear = 365 * 24 * 60 * 60 * 1_000_000_000;
     (now - lastResetTimestamp) >= nanosPerYear;
   };
 
-  // Helper function to get or reset user profile usage
   func getOrResetUserProfile(caller : Principal) : UserProfile {
     switch (userProfiles.get(caller)) {
       case (null) { Runtime.trap("User profile not found") };
@@ -166,10 +208,32 @@ actor {
     ];
   };
 
+  // PASSWORD-BASED ADMIN ACCESS
+  // Verifies the given password and grants admin role to the caller if correct.
+  // Returns true on success, false if the password is wrong.
+  // Does NOT trap on wrong password so the frontend can show a friendly error.
+  public shared ({ caller }) func claimAdminWithPassword(password : Text) : async Bool {
+    if (caller.isAnonymous()) { return false };
+    if (password != _adminPassword) { return false };
+    // Grant admin role (idempotent)
+    accessControlState.userRoles.add(caller, #admin);
+    accessControlState.adminAssigned := true;
+    true;
+  };
+
   // USER MANAGEMENT SECTION
 
-  // Admin endpoint to get all user profiles
-  public query ({ caller }) func getAllUserProfiles() : async [(Text, UserProfile)] {
+  public shared ({ caller }) func registerUser() : async () {
+    if (caller.isAnonymous()) { return };
+    switch (accessControlState.userRoles.get(caller)) {
+      case (?_) {};
+      case (null) {
+        accessControlState.userRoles.add(caller, #user);
+      };
+    };
+  };
+
+  public shared ({ caller }) func getAllUserProfiles() : async [(Text, UserProfile)] {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can view all user profiles");
     };
@@ -182,7 +246,6 @@ actor {
     );
   };
 
-  // Admin endpoint to set user active status
   public shared ({ caller }) func setUserActiveStatus(userId : Text, active : Bool) : async () {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can set user active status");
@@ -199,27 +262,20 @@ actor {
     };
   };
 
-  // User endpoint to check if current user is active
   public query ({ caller }) func isCurrentUserActive() : async Bool {
     switch (userProfiles.get(caller)) {
-      case (null) { true }; // Return true if not found to avoid blocking unauthenticated users
+      case (null) { true };
       case (?profile) { profile.isActive };
     };
   };
 
-  // USER MANAGEMENT SECTION END
-
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can access profiles");
-    };
+    if (caller.isAnonymous()) { return null };
     userProfiles.get(caller);
   };
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can access profiles");
-    };
+    if (caller.isAnonymous()) { return null };
     if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own profile");
     };
@@ -227,13 +283,18 @@ actor {
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can save profiles");
+    if (caller.isAnonymous()) {
+      Runtime.trap("Anonymous callers cannot save profiles");
+    };
+    switch (accessControlState.userRoles.get(caller)) {
+      case (null) {
+        accessControlState.userRoles.add(caller, #user);
+      };
+      case (?_) {};
     };
     userProfiles.add(caller, profile);
   };
 
-  // Subscription management and Stripe integration
   public shared ({ caller }) func setStripeConfiguration(config : Stripe.StripeConfiguration) : async () {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can set Stripe configuration");
@@ -242,7 +303,6 @@ actor {
   };
 
   public query func isStripeConfigured() : async Bool {
-    // Public query - no authorization needed
     stripeConfig != null;
   };
 
@@ -272,11 +332,6 @@ actor {
     };
   };
 
-  // Creates a Stripe Checkout session for the Premium Tier subscription ($12/month).
-  // Uses the Stripe Price ID directly (mode=subscription) so the correct price
-  // is shown on the Stripe-hosted checkout page.
-  // successUrl and cancelUrl are passed from the frontend using window.location.origin
-  // so redirects land on the correct domain after payment.
   public shared ({ caller }) func createPremiumCheckoutSession(successUrl : Text, cancelUrl : Text) : async Text {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can create checkout sessions");
@@ -287,7 +342,6 @@ actor {
       secretKey = stripeSecretKey;
       allowedCountries = [];
     };
-    // Premium Tier Price ID: $12/month subscription
     let priceId = "price_1T7ZMRHkLCsqzrQ2PzhJm1ME";
 
     log("Starting premium subscription checkout session");
@@ -309,15 +363,11 @@ actor {
     };
   };
 
-  // Helper function to stringify shopping items for logging
   func stringifyShoppingItems(items : [Stripe.ShoppingItem]) : Text {
     let itemStrings = items.map(func(item) { item.productName });
     "[" # itemStrings.toText() # "]";
   };
 
-  // Marks the calling user as premium. Only authenticated (non-anonymous) users
-  // can call this for themselves. The caller principal is taken from the shared
-  // context — no principal parameter is accepted to prevent privilege escalation.
   public shared ({ caller }) func markUserAsPremium() : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can be marked as premium");
@@ -376,16 +426,10 @@ actor {
     iter.toArray();
   };
 
-  // Webhook handler for Stripe events
   public shared ({ caller }) func handleStripeWebhook(sessionId : Text, eventType : Text) : async () {
-    // Webhook endpoints should validate the caller is from Stripe
-    // In production, verify webhook signature from Stripe
-    // For now, only admins can manually trigger this (for testing)
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can handle webhooks");
     };
-
-    // Process payment success events
     if (eventType == "checkout.session.completed" or eventType == "payment_intent.succeeded") {};
   };
 
@@ -492,7 +536,6 @@ actor {
       Runtime.trap("Unauthorized: Only admins can update subscriptions");
     };
 
-    // Assign premium tier directly
     switch (userProfiles.get(principalId)) {
       case (null) { Runtime.trap("User profile not found") };
       case (?profile) {
@@ -524,7 +567,6 @@ actor {
     };
     let profile = getOrResetUserProfile(caller);
 
-    // Check if user is active before allowing export decrement
     if (not profile.isActive) {
       Runtime.trap("Your account has been deactivated. Please contact support.");
     };
@@ -586,9 +628,6 @@ actor {
     };
   };
 
-  // ROM (Annual Tonnage Schedule) Usage Tracking
-
-  // Returns the ROM usage count for the calling user.
   public query ({ caller }) func getRomUsageCount() : async Nat {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view ROM usage count");
@@ -599,7 +638,6 @@ actor {
     };
   };
 
-  // Increments the ROM usage count for the calling user.
   public shared ({ caller }) func incrementRomUsage() : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can increment ROM usage");
@@ -608,7 +646,6 @@ actor {
     switch (userProfiles.get(caller)) {
       case (null) { Runtime.trap("User profile not found") };
       case (?profile) {
-        // Check if user is active before allowing ROM usage increment
         if (not profile.isActive) {
           Runtime.trap("Your account has been deactivated. Please contact support.");
         };
@@ -632,7 +669,6 @@ actor {
     };
   };
 
-  // Resets the ROM usage count for any user. Admin-only.
   public shared ({ caller }) func resetRomUsage(principalId : Principal) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can reset ROM usage");

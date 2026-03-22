@@ -35,36 +35,27 @@ type UserRecord = {
   profile: UserProfile;
 };
 
+const ADMIN_SESSION_KEY = "profimine_admin_verified";
+
 export default function AdminDashboard() {
   const { identity } = useInternetIdentity();
   const { actor } = useActor();
   const [users, setUsers] = useState<UserRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(
+    sessionStorage.getItem(ADMIN_SESSION_KEY) === "true",
+  );
   const [togglingId, setTogglingId] = useState<string | null>(null);
-  const [tokenInput, setTokenInput] = useState("");
-  const [claiming, setClaiming] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [usersLoaded, setUsersLoaded] = useState(false);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const urlToken = params.get("token");
-    if (urlToken) setTokenInput(urlToken);
-  }, []);
-
-  useEffect(() => {
-    if (!actor || !identity) return;
-    actor
-      .isCallerAdmin()
-      .then((result: boolean) => {
-        setIsAdmin(result);
-        if (result) loadUsers();
-        else setLoading(false);
-      })
-      .catch(() => {
-        setIsAdmin(false);
-        setLoading(false);
-      });
-  }, [actor, identity]);
+    if (isAdmin && actor && identity && !usersLoaded) {
+      loadUsers();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin, actor, identity, usersLoaded]);
 
   const loadUsers = async () => {
     if (!actor) return;
@@ -82,6 +73,7 @@ export default function AdminDashboard() {
         }),
       );
       setUsers(mapped);
+      setUsersLoaded(true);
     } catch (_e) {
       toast.error("Failed to load users.");
     } finally {
@@ -89,28 +81,25 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleClaimAdmin = async () => {
-    if (!actor || !tokenInput.trim()) {
-      toast.error("Please enter the admin token.");
+  const handleVerifyPassword = async () => {
+    if (!actor || !passwordInput.trim()) {
+      toast.error("Please enter the admin password.");
       return;
     }
-    setClaiming(true);
+    setVerifying(true);
     try {
-      await actor._initializeAccessControlWithSecret(tokenInput.trim());
-      toast.success("Admin role claimed successfully!");
-      setIsAdmin(true);
-      loadUsers();
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      if (msg.includes("already") || msg.includes("registered")) {
-        toast.error("Admin already assigned or account already registered.");
+      const success = await actor.claimAdminWithPassword(passwordInput.trim());
+      if (success) {
+        sessionStorage.setItem(ADMIN_SESSION_KEY, "true");
+        setIsAdmin(true);
+        toast.success("Access granted.");
       } else {
-        toast.error(
-          "Invalid token. Please check your CAFFEINE_ADMIN_TOKEN and try again.",
-        );
+        toast.error("Incorrect password. Please try again.");
       }
+    } catch (_e) {
+      toast.error("Verification failed. Please try again.");
     } finally {
-      setClaiming(false);
+      setVerifying(false);
     }
   };
 
@@ -150,68 +139,58 @@ export default function AdminDashboard() {
     );
   }
 
-  if (isAdmin === false) {
+  if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-6">
-        <Card className="max-w-md w-full" data-ocid="admin.claim.card">
+        <Card className="max-w-md w-full">
           <CardHeader className="text-center">
             <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[oklch(0.55_0.15_60)] to-[oklch(0.45_0.12_50)] flex items-center justify-center mx-auto mb-3">
               <KeyRound className="w-7 h-7 text-white" />
             </div>
-            <CardTitle className="text-xl">Claim Admin Access</CardTitle>
+            <CardTitle className="text-xl">Admin Access</CardTitle>
             <CardDescription>
-              Enter the admin token to register as the ProFi Mine administrator.
-              You can also pass it directly in the URL as{" "}
-              <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                /admin?token=YOUR_TOKEN
-              </code>
-              .
+              Enter the admin password to access the ProFi Mine management
+              dashboard.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <label
-                htmlFor="admin-token-input"
+                htmlFor="admin-password-input"
                 className="text-sm font-medium text-foreground"
               >
-                Admin Token
+                Admin Password
               </label>
               <Input
+                id="admin-password-input"
                 type="password"
-                placeholder="Paste your CAFFEINE_ADMIN_TOKEN here"
-                value={tokenInput}
-                onChange={(e) => setTokenInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleClaimAdmin()}
-                id="admin-token-input"
-                data-ocid="admin.claim.input"
+                placeholder="Enter admin password"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleVerifyPassword()}
               />
             </div>
             <Button
               className="w-full"
-              onClick={handleClaimAdmin}
-              disabled={claiming || !tokenInput.trim()}
-              data-ocid="admin.claim.submit_button"
+              onClick={handleVerifyPassword}
+              disabled={verifying || !passwordInput.trim()}
             >
-              {claiming ? (
+              {verifying ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Claiming...
+                  Verifying...
                 </>
               ) : (
-                "Claim Admin Role"
+                "Enter Dashboard"
               )}
             </Button>
-            <p className="text-xs text-muted-foreground text-center">
-              This can only be done once. Once claimed, your Internet Identity
-              becomes the permanent admin.
-            </p>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  if (isAdmin === null || loading) {
+  if (loading && !usersLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
@@ -242,8 +221,10 @@ export default function AdminDashboard() {
           <Button
             variant="outline"
             size="sm"
-            onClick={loadUsers}
-            data-ocid="admin.refresh.button"
+            onClick={() => {
+              setUsersLoaded(false);
+              loadUsers();
+            }}
           >
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
@@ -269,7 +250,7 @@ export default function AdminDashboard() {
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
                   <span className="text-green-600 dark:text-green-400 font-bold text-sm">
-                    {activeUsers.length}
+                    ✓
                   </span>
                 </div>
                 <div>
@@ -284,7 +265,7 @@ export default function AdminDashboard() {
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
                   <span className="text-red-600 dark:text-red-400 font-bold text-sm">
-                    {deactivatedUsers.length}
+                    ✕
                   </span>
                 </div>
                 <div>
@@ -307,17 +288,21 @@ export default function AdminDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {users.length === 0 ? (
-              <div
-                className="text-center py-12 text-muted-foreground"
-                data-ocid="admin.users.empty_state"
-              >
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : users.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
                 <Users className="w-10 h-10 mx-auto mb-3 opacity-40" />
                 <p>No users registered yet.</p>
+                <p className="text-xs mt-1">
+                  Users appear here after they log in and create their profile.
+                </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <Table data-ocid="admin.users.table">
+                <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Name</TableHead>
@@ -330,10 +315,9 @@ export default function AdminDashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users.map(({ principalId, profile }, index) => (
+                    {users.map(({ principalId, profile }) => (
                       <TableRow
                         key={principalId}
-                        data-ocid={`admin.users.row.${index + 1}`}
                         className={!profile.isActive ? "opacity-50" : ""}
                       >
                         <TableCell className="font-medium">
@@ -377,7 +361,6 @@ export default function AdminDashboard() {
                               handleToggle(principalId, profile.isActive)
                             }
                             disabled={togglingId === principalId}
-                            data-ocid={`admin.users.toggle.${index + 1}`}
                           >
                             {togglingId === principalId ? (
                               <Loader2 className="w-3 h-3 animate-spin" />

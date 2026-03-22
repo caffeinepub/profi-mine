@@ -9,6 +9,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import ProfileSetupModal from "../components/auth/ProfileSetupModal";
 import DashboardHeader from "../components/dashboard/DashboardHeader";
 import ExportTab from "../components/export/ExportTab";
 import UsageGuideTab from "../components/guide/UsageGuideTab";
@@ -19,6 +20,7 @@ import { ProjectProvider } from "../contexts/ProjectContext";
 import { ScenarioProvider } from "../contexts/ScenarioContext";
 import { useActor } from "../hooks/useActor";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
+import { useGetCallerUserProfile } from "../hooks/useQueries";
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("inputs");
@@ -26,6 +28,18 @@ export default function DashboardPage() {
   const { identity, clear } = useInternetIdentity();
   const { actor, isFetching } = useActor();
   const navigate = useNavigate();
+  const profileQuery = useGetCallerUserProfile();
+
+  // Show the profile setup modal when:
+  // 1. The actor is ready (not loading)
+  // 2. The profile query has completed (not loading)
+  // 3. The profile is definitely null (no profile exists yet) OR the query errored
+  //    (which can happen if the user isn’t registered — safe to show the form in that case too)
+  const profileReady = !isFetching && !profileQuery.isLoading;
+  const needsProfileSetup =
+    profileReady &&
+    (profileQuery.data === null ||
+      (profileQuery.isError && profileQuery.data === undefined));
 
   useEffect(() => {
     if (!identity) {
@@ -88,6 +102,9 @@ export default function DashboardPage() {
               </div>
             </div>
           )}
+
+          {/* Profile setup for new users */}
+          {needsProfileSetup && <ProfileSetupModal />}
 
           <DashboardHeader />
 

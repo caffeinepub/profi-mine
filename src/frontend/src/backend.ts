@@ -200,6 +200,8 @@ export enum UserRole {
 }
 export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
+    registerUser(): Promise<void>;
+    claimAdminWithPassword(password: string): Promise<boolean>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     canExport(): Promise<boolean>;
     clearPersistentLogs(): Promise<void>;
@@ -240,6 +242,34 @@ export interface backendInterface {
 import type { ExportLimit as _ExportLimit, MiningProject as _MiningProject, StripeSessionStatus as _StripeSessionStatus, SubscriptionTier as _SubscriptionTier, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
+    async registerUser(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.registerUser();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.registerUser();
+            return result;
+        }
+    }
+    async claimAdminWithPassword(password: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.claimAdminWithPassword(password);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.claimAdminWithPassword(password);
+            return result;
+        }
+    }
     async _initializeAccessControlWithSecret(userSecret: string): Promise<void> {
         if (this.processError) {
             try {

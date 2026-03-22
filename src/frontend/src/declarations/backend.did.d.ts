@@ -95,6 +95,8 @@ export interface http_request_result {
 }
 export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'claimAdminWithPassword' : ActorMethod<[string], boolean>,
+  'registerUser' : ActorMethod<[], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'canExport' : ActorMethod<[], boolean>,
   'clearPersistentLogs' : ActorMethod<[], undefined>,

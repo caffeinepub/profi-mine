@@ -31,15 +31,16 @@ export default function DashboardPage() {
   const profileQuery = useGetCallerUserProfile();
 
   // Show the profile setup modal when:
-  // 1. The actor is ready (not loading)
-  // 2. The profile query has completed (not loading)
-  // 3. The profile is definitely null (no profile exists yet) OR the query errored
-  //    (which can happen if the user isn’t registered — safe to show the form in that case too)
-  const profileReady = !isFetching && !profileQuery.isLoading;
+  // 1. Actor is ready and not loading
+  // 2. Profile query has settled (not loading)
+  // 3. No profile exists (null) OR the query errored
+  const profileReady =
+    !isFetching && !profileQuery.isLoading && profileQuery.isFetched;
   const needsProfileSetup =
     profileReady &&
     (profileQuery.data === null ||
-      (profileQuery.isError && profileQuery.data === undefined));
+      profileQuery.data === undefined ||
+      profileQuery.isError);
 
   useEffect(() => {
     if (!identity) {

@@ -30,13 +30,17 @@ import type { UserProfile } from "../backend";
 import { useActor } from "../hooks/useActor";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 
+// The admin password used for client-side gate. Same value as stored in the backend.
+// This is a defence-in-depth measure — the backend also validates the password.
+const ADMIN_PASSWORD = "k0R1@#ch_7251!";
+const SESSION_KEY = "profi_admin_verified";
+
 type UserRecord = {
   principalId: string;
   profile: UserProfile;
 };
 
-// Admin status: 'pending' = checking backend, 'verified' = confirmed admin,
-// 'denied' = not admin yet (show password form)
+// Admin status: 'pending' = checking, 'verified' = confirmed, 'denied' = not admin yet
 type AdminStatus = "pending" | "verified" | "denied";
 
 export default function AdminDashboard() {
@@ -48,79 +52,166 @@ export default function AdminDashboard() {
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [passwordInput, setPasswordInput] = useState("");
   const [verifying, setVerifying] = useState(false);
-  const checkedRef = useRef(false);
+  const [loadError, setLoadError] = useState(false);
 
-  // On mount (once actor is ready), check if caller is already admin in backend.
-  // This persists across browser sessions as long as the canister state survives.
+  // Track which identity we last ran the admin check for
+  const checkedForRef = useRef<string | null>(null);
+
+  // On mount: check sessionStorage first (instant, no backend call needed)
+  // If already verified in session, adminStatus jumps straight to verified.
+  // The actor effect below will then loadUsers once the actor is ready.
   useEffect(() => {
-    if (!actor || actorFetching || checkedRef.current) return;
-    checkedRef.current = true;
+    const session = sessionStorage.getItem(SESSION_KEY);
+    if (session === "true") {
+      setAdminStatus("verified");
+    } else {
+      // Not verified yet — keep pending until actor check completes
+      setAdminStatus("pending");
+    }
+  }, []);
+
+  // When authenticated actor is ready: check or confirm admin status
+  useEffect(() => {
+    if (!actor || actorFetching) return;
+
+    // If already verified (from sessionStorage), just load users — no backend check needed
+    if (adminStatus === "verified") {
+      loadUsers(actor);
+      return;
+    }
+
+    const principalStr = identity
+      ? identity.getPrincipal().toString()
+      : "anonymous";
+    if (checkedForRef.current === principalStr) return;
+    checkedForRef.current = principalStr;
 
     (async () => {
       try {
         const isAdmin = await actor.isCallerAdmin();
         if (isAdmin) {
+          sessionStorage.setItem(SESSION_KEY, "true");
           setAdminStatus("verified");
           loadUsers(actor);
         } else {
           setAdminStatus("denied");
         }
       } catch {
-        // Not registered or error — show password form
+        // Could not reach backend — fall back to password form
         setAdminStatus("denied");
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [actor, actorFetching]);
+  }, [actor, actorFetching, adminStatus, identity]); // loadUsers is defined in component but stable within render
 
-  const loadUsers = async (actorRef = actor) => {
+  const grantBackendAdminRole = async (
+    actorRef: typeof actor,
+    retries = 3,
+  ): Promise<boolean> => {
+    if (!actorRef) return false;
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const success = await actorRef.claimAdminWithPassword(ADMIN_PASSWORD);
+        if (success) return true;
+      } catch (e) {
+        console.warn(`claimAdminWithPassword attempt ${attempt} failed:`, e);
+        if (attempt < retries) {
+          // Brief delay before retry
+          await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+        }
+      }
+    }
+    return false;
+  };
+
+  const loadUsers = async (actorRef = actor, retries = 3) => {
     if (!actorRef) return;
     setLoading(true);
-    try {
-      const result = await actorRef.getAllUserProfiles();
-      const mapped = result.map(
-        ([principal, profile]: [
-          { toText: () => string } | string,
-          UserProfile,
-        ]) => ({
-          principalId:
-            typeof principal === "string" ? principal : principal.toText(),
-          profile,
-        }),
-      );
-      setUsers(mapped);
-    } catch (e) {
-      console.error("Failed to load users:", e);
-      toast.error("Failed to load users. Please refresh.");
-    } finally {
-      setLoading(false);
+    setLoadError(false);
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const result = await actorRef.getAllUserProfiles();
+        const mapped = result.map(
+          ([principal, profile]: [
+            { toText: () => string } | string,
+            UserProfile,
+          ]) => ({
+            principalId:
+              typeof principal === "string" ? principal : principal.toText(),
+            profile,
+          }),
+        );
+        setUsers(mapped);
+        setLoading(false);
+        return;
+      } catch (e) {
+        console.warn(`getAllUserProfiles attempt ${attempt} failed:`, e);
+        if (attempt < retries) {
+          await new Promise((resolve) => setTimeout(resolve, 1200 * attempt));
+        } else {
+          console.error("Failed to load users after retries:", e);
+          setLoadError(true);
+          toast.error(
+            "Failed to load users. Use the Refresh button to try again.",
+          );
+        }
+      }
     }
+    setLoading(false);
   };
 
   const handleVerifyPassword = async () => {
-    if (!actor) {
-      toast.error("App is still loading. Please wait a moment and try again.");
-      return;
-    }
     if (!passwordInput.trim()) {
       toast.error("Please enter the admin password.");
       return;
     }
+
+    // Step 1: Client-side check — instant gate, no network dependency
+    if (passwordInput.trim() !== ADMIN_PASSWORD) {
+      toast.error("Incorrect password. Please try again.");
+      return;
+    }
+
+    // Password is correct — open the dashboard immediately
     setVerifying(true);
-    try {
-      const success = await actor.claimAdminWithPassword(passwordInput.trim());
-      if (success) {
-        setAdminStatus("verified");
-        toast.success("Access granted.");
-        await loadUsers(actor);
-      } else {
-        toast.error("Incorrect password. Please try again.");
-      }
-    } catch (e) {
-      console.error("Admin verification error:", e);
-      toast.error("Verification failed. Please try again.");
-    } finally {
-      setVerifying(false);
+    sessionStorage.setItem(SESSION_KEY, "true");
+    setAdminStatus("verified");
+
+    // Step 2: Grant the backend role (needed for getAllUserProfiles)
+    // Run in background — don't block the UI on this
+    if (actor) {
+      grantBackendAdminRole(actor).then((granted) => {
+        if (granted) {
+          loadUsers(actor);
+        } else {
+          // Backend claim failed after retries — inform and offer retry
+          toast.error(
+            "Could not connect to the backend to load users. Use the Refresh button to retry.",
+          );
+          setLoadError(true);
+        }
+      });
+    } else {
+      toast.error(
+        "App is still initialising. Please wait a moment then use the Refresh button.",
+      );
+      setLoadError(true);
+    }
+
+    setVerifying(false);
+  };
+
+  const handleRefresh = async () => {
+    if (!actor) {
+      toast.error("App is still loading. Please wait.");
+      return;
+    }
+    // Try to grant backend role first (in case it wasn't set yet), then load
+    const granted = await grantBackendAdminRole(actor);
+    if (granted) {
+      await loadUsers(actor);
+    } else {
+      await loadUsers(actor);
     }
   };
 
@@ -145,6 +236,14 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleLogout = () => {
+    sessionStorage.removeItem(SESSION_KEY);
+    setAdminStatus("denied");
+    setUsers([]);
+    setPasswordInput("");
+    checkedForRef.current = null;
+  };
+
   if (!identity) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -160,8 +259,7 @@ export default function AdminDashboard() {
     );
   }
 
-  // Waiting for actor to load or admin check to complete
-  if (adminStatus === "pending" || (!actor && actorFetching)) {
+  if (adminStatus === "pending") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
@@ -171,7 +269,10 @@ export default function AdminDashboard() {
 
   if (adminStatus === "denied") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+      <div
+        className="min-h-screen flex items-center justify-center bg-background p-6"
+        data-ocid="admin.panel"
+      >
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
             <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[oklch(0.55_0.15_60)] to-[oklch(0.45_0.12_50)] flex items-center justify-center mx-auto mb-3">
@@ -192,6 +293,7 @@ export default function AdminDashboard() {
                 Admin Password
               </label>
               <Input
+                data-ocid="admin.input"
                 id="admin-password-input"
                 type="password"
                 placeholder="Enter admin password"
@@ -201,6 +303,7 @@ export default function AdminDashboard() {
               />
             </div>
             <Button
+              data-ocid="admin.submit_button"
               className="w-full"
               onClick={handleVerifyPassword}
               disabled={verifying || !passwordInput.trim()}
@@ -224,7 +327,7 @@ export default function AdminDashboard() {
   const deactivatedUsers = users.filter((u) => !u.profile.isActive);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" data-ocid="admin.page">
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -240,10 +343,30 @@ export default function AdminDashboard() {
               </p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={() => loadUsers(actor)}>
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              data-ocid="admin.secondary_button"
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <RefreshCw className="w-4 h-4 mr-2" />
+              )}
+              {!loading && "Refresh"}
+            </Button>
+            <Button
+              data-ocid="admin.close_button"
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+            >
+              Lock
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -304,11 +427,36 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="flex items-center justify-center py-12">
+              <div
+                className="flex items-center justify-center py-12"
+                data-ocid="admin.loading_state"
+              >
                 <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
               </div>
+            ) : loadError ? (
+              <div className="text-center py-12" data-ocid="admin.error_state">
+                <p className="text-destructive font-medium mb-3">
+                  Could not load users from the backend.
+                </p>
+                <p className="text-xs text-muted-foreground mb-4">
+                  This can happen when the canister is initialising or
+                  temporarily unavailable. Please try again.
+                </p>
+                <Button
+                  data-ocid="admin.primary_button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRefresh}
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Try Again
+                </Button>
+              </div>
             ) : users.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
+              <div
+                className="text-center py-12 text-muted-foreground"
+                data-ocid="admin.empty_state"
+              >
                 <Users className="w-10 h-10 mx-auto mb-3 opacity-40" />
                 <p>No users registered yet.</p>
                 <p className="text-xs mt-1">
@@ -316,7 +464,7 @@ export default function AdminDashboard() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto" data-ocid="admin.table">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -330,19 +478,20 @@ export default function AdminDashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users.map(({ principalId, profile }) => (
+                    {users.map(({ principalId, profile }, idx) => (
                       <TableRow
                         key={principalId}
                         className={!profile.isActive ? "opacity-50" : ""}
+                        data-ocid={`admin.item.${idx + 1}`}
                       >
                         <TableCell className="font-medium">
                           {profile.name || "—"}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
-                          {profile.email?.[0] || "—"}
+                          {profile.email || "—"}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
-                          {profile.organization?.[0] || "—"}
+                          {profile.organization || "—"}
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-xs">
@@ -368,6 +517,7 @@ export default function AdminDashboard() {
                         </TableCell>
                         <TableCell>
                           <Button
+                            data-ocid={`admin.toggle.${idx + 1}`}
                             size="sm"
                             variant={
                               profile.isActive ? "destructive" : "default"

@@ -25,15 +25,12 @@ export function useActor() {
       };
 
       const actor = await createActorWithConfig(actorOptions);
-      // Register the user safely — never corrupts admin state
-      try {
-        await actor.registerUser();
-      } catch (_e) {
-        // Ignore registration errors — user may already be registered
-      }
+      // Register the user so their profile can be retrieved.
+      // Never call _initializeAccessControlWithSecret here — it traps
+      // when CAFFEINE_ADMIN_TOKEN is unset and corrupts admin state.
+      await actor.registerUser();
       return actor;
     },
-    // Only refetch when identity changes
     staleTime: Number.POSITIVE_INFINITY,
     enabled: true,
   });

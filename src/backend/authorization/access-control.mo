@@ -25,7 +25,7 @@ module {
   public func initialize(state : AccessControlState, caller : Principal, adminToken : Text, userProvidedToken : Text) {
     if (caller.isAnonymous()) { return };
     switch (state.userRoles.get(caller)) {
-      case (?_) {}; // already registered, preserve existing role
+      case (?_) {};
       case (null) {
         if (not state.adminAssigned and userProvidedToken == adminToken) {
           state.userRoles.add(caller, #admin);
@@ -37,7 +37,6 @@ module {
     };
   };
 
-  // Returns the role of the caller. Traps if user is not registered.
   public func getUserRole(state : AccessControlState, caller : Principal) : UserRole {
     if (caller.isAnonymous()) { return #guest };
     switch (state.userRoles.get(caller)) {
@@ -48,12 +47,12 @@ module {
     };
   };
 
-  // Safe version of isAdmin — never traps, returns false for unregistered principals.
-  public func isAdminSafe(state : AccessControlState, caller : Principal) : Bool {
-    if (caller.isAnonymous()) { return false };
+  // Safe version — returns #guest instead of trapping for unregistered principals.
+  public func getUserRoleSafe(state : AccessControlState, caller : Principal) : UserRole {
+    if (caller.isAnonymous()) { return #guest };
     switch (state.userRoles.get(caller)) {
-      case (?(#admin)) { true };
-      case (_) { false };
+      case (?role) { role };
+      case (null) { #guest };
     };
   };
 
@@ -65,16 +64,18 @@ module {
   };
 
   public func hasPermission(state : AccessControlState, caller : Principal, requiredRole : UserRole) : Bool {
-    if (caller.isAnonymous()) { return requiredRole == #guest };
-    switch (state.userRoles.get(caller)) {
-      case (?(#admin)) { true };
-      case (?(#user)) { requiredRole == #user or requiredRole == #guest };
-      case (?(#guest)) { requiredRole == #guest };
-      case (null) { requiredRole == #guest };
+    let userRole = getUserRoleSafe(state, caller);
+    if (userRole == #admin or requiredRole == #guest) { true } else {
+      userRole == requiredRole;
     };
   };
 
   public func isAdmin(state : AccessControlState, caller : Principal) : Bool {
-    isAdminSafe(state, caller);
+    getUserRole(state, caller) == #admin;
+  };
+
+  // Safe version — returns false instead of trapping for unregistered principals.
+  public func isAdminSafe(state : AccessControlState, caller : Principal) : Bool {
+    getUserRoleSafe(state, caller) == #admin;
   };
 };

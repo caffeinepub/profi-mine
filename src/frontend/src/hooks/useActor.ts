@@ -14,7 +14,6 @@ export function useActor() {
       const isAuthenticated = !!identity;
 
       if (!isAuthenticated) {
-        // Return anonymous actor if not authenticated
         return await createActorWithConfig();
       }
 
@@ -25,17 +24,20 @@ export function useActor() {
       };
 
       const actor = await createActorWithConfig(actorOptions);
-      // Register the user so their profile can be retrieved.
-      // Never call _initializeAccessControlWithSecret here — it traps
-      // when CAFFEINE_ADMIN_TOKEN is unset and corrupts admin state.
-      await actor.registerUser();
+      // Register the user safely — this never traps and is idempotent.
+      // Do NOT call _initializeAccessControlWithSecret here; it traps when
+      // CAFFEINE_ADMIN_TOKEN is not set, breaking the actor for everyone.
+      try {
+        await actor.registerUser();
+      } catch {
+        // Safe to ignore — actor is still usable
+      }
       return actor;
     },
     staleTime: Number.POSITIVE_INFINITY,
     enabled: true,
   });
 
-  // When the actor changes, invalidate dependent queries
   useEffect(() => {
     if (actorQuery.data) {
       queryClient.invalidateQueries({

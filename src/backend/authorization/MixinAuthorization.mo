@@ -7,7 +7,8 @@ mixin (accessControlState : AccessControl.AccessControlState) {
   public shared ({ caller }) func _initializeAccessControlWithSecret(userSecret : Text) : async () {
     switch (Prim.envVar<system>("CAFFEINE_ADMIN_TOKEN")) {
       case (null) {
-        Runtime.trap("CAFFEINE_ADMIN_TOKEN environment variable is not set");
+        // Env var not set — silently ignore instead of trapping
+        return;
       };
       case (?adminToken) {
         AccessControl.initialize(accessControlState, caller, adminToken, userSecret);
@@ -16,7 +17,12 @@ mixin (accessControlState : AccessControl.AccessControlState) {
   };
 
   public query ({ caller }) func getCallerUserRole() : async AccessControl.UserRole {
-    AccessControl.getUserRole(accessControlState, caller);
+    // Use safe check — return #guest for unregistered principals instead of trapping
+    if (caller.isAnonymous()) { return #guest };
+    switch (accessControlState.userRoles.get(caller)) {
+      case (?role) { role };
+      case (null) { #guest };
+    };
   };
 
   public shared ({ caller }) func assignCallerUserRole(user : Principal, role : AccessControl.UserRole) : async () {
@@ -24,7 +30,8 @@ mixin (accessControlState : AccessControl.AccessControlState) {
     AccessControl.assignRole(accessControlState, caller, user, role);
   };
 
+  // Safe version: never traps, returns false for unregistered principals
   public query ({ caller }) func isCallerAdmin() : async Bool {
-    AccessControl.isAdmin(accessControlState, caller);
+    AccessControl.isAdminSafe(accessControlState, caller);
   };
 };

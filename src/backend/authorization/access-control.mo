@@ -47,8 +47,17 @@ module {
     };
   };
 
+  // Safe version that never traps — returns false for unregistered principals
+  public func isAdminSafe(state : AccessControlState, caller : Principal) : Bool {
+    if (caller.isAnonymous()) { return false };
+    switch (state.userRoles.get(caller)) {
+      case (?#admin) { true };
+      case (_) { false };
+    };
+  };
+
   public func assignRole(state : AccessControlState, caller : Principal, user : Principal, role : UserRole) {
-    if (not (isAdmin(state, caller))) {
+    if (not (isAdminSafe(state, caller))) {
       Runtime.trap("Unauthorized: Only admins can assign user roles");
     };
     state.userRoles.add(user, role);

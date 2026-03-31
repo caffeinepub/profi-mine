@@ -25,10 +25,10 @@ export function useActor() {
       };
 
       const actor = await createActorWithConfig(actorOptions);
-      // Register the user (safe, idempotent — does NOT affect admin state)
+      // Register the user safely — never corrupts admin state
       try {
         await actor.registerUser();
-      } catch (_) {
+      } catch (_e) {
         // Ignore registration errors — user may already be registered
       }
       return actor;

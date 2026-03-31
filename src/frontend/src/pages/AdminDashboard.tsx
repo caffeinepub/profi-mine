@@ -24,7 +24,7 @@ import {
   RefreshCw,
   Users,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { UserProfile } from "../backend";
 import { useActor } from "../hooks/useActor";
@@ -35,33 +35,49 @@ type UserRecord = {
   profile: UserProfile;
 };
 
-const ADMIN_SESSION_KEY = "profimine_admin_verified";
+// Admin status: 'pending' = checking backend, 'verified' = confirmed admin,
+// 'denied' = not admin yet (show password form)
+type AdminStatus = "pending" | "verified" | "denied";
 
 export default function AdminDashboard() {
   const { identity } = useInternetIdentity();
-  const { actor } = useActor();
+  const { actor, isFetching: actorFetching } = useActor();
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(false);
-  const [isAdmin, setIsAdmin] = useState<boolean>(
-    sessionStorage.getItem(ADMIN_SESSION_KEY) === "true",
-  );
+  const [adminStatus, setAdminStatus] = useState<AdminStatus>("pending");
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [passwordInput, setPasswordInput] = useState("");
   const [verifying, setVerifying] = useState(false);
-  const [usersLoaded, setUsersLoaded] = useState(false);
+  const checkedRef = useRef(false);
 
+  // On mount (once actor is ready), check if caller is already admin in backend.
+  // This persists across browser sessions as long as the canister state survives.
   useEffect(() => {
-    if (isAdmin && actor && identity && !usersLoaded) {
-      loadUsers();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAdmin, actor, identity, usersLoaded]);
+    if (!actor || actorFetching || checkedRef.current) return;
+    checkedRef.current = true;
 
-  const loadUsers = async () => {
-    if (!actor) return;
+    (async () => {
+      try {
+        const isAdmin = await actor.isCallerAdmin();
+        if (isAdmin) {
+          setAdminStatus("verified");
+          loadUsers(actor);
+        } else {
+          setAdminStatus("denied");
+        }
+      } catch {
+        // Not registered or error — show password form
+        setAdminStatus("denied");
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [actor, actorFetching]);
+
+  const loadUsers = async (actorRef = actor) => {
+    if (!actorRef) return;
     setLoading(true);
     try {
-      const result = await actor.getAllUserProfiles();
+      const result = await actorRef.getAllUserProfiles();
       const mapped = result.map(
         ([principal, profile]: [
           { toText: () => string } | string,
@@ -73,16 +89,20 @@ export default function AdminDashboard() {
         }),
       );
       setUsers(mapped);
-      setUsersLoaded(true);
-    } catch (_e) {
-      toast.error("Failed to load users.");
+    } catch (e) {
+      console.error("Failed to load users:", e);
+      toast.error("Failed to load users. Please refresh.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleVerifyPassword = async () => {
-    if (!actor || !passwordInput.trim()) {
+    if (!actor) {
+      toast.error("App is still loading. Please wait a moment and try again.");
+      return;
+    }
+    if (!passwordInput.trim()) {
       toast.error("Please enter the admin password.");
       return;
     }
@@ -90,13 +110,14 @@ export default function AdminDashboard() {
     try {
       const success = await actor.claimAdminWithPassword(passwordInput.trim());
       if (success) {
-        sessionStorage.setItem(ADMIN_SESSION_KEY, "true");
-        setIsAdmin(true);
+        setAdminStatus("verified");
         toast.success("Access granted.");
+        await loadUsers(actor);
       } else {
         toast.error("Incorrect password. Please try again.");
       }
-    } catch (_e) {
+    } catch (e) {
+      console.error("Admin verification error:", e);
       toast.error("Verification failed. Please try again.");
     } finally {
       setVerifying(false);
@@ -116,7 +137,7 @@ export default function AdminDashboard() {
           ? "User blocked successfully."
           : "User allowed successfully.",
       );
-      await loadUsers();
+      await loadUsers(actor);
     } catch (_e) {
       toast.error("Failed to update user status.");
     } finally {
@@ -139,7 +160,16 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!isAdmin) {
+  // Waiting for actor to load or admin check to complete
+  if (adminStatus === "pending" || (!actor && actorFetching)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (adminStatus === "denied") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-6">
         <Card className="max-w-md w-full">
@@ -190,14 +220,6 @@ export default function AdminDashboard() {
     );
   }
 
-  if (loading && !usersLoaded) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
   const activeUsers = users.filter((u) => u.profile.isActive);
   const deactivatedUsers = users.filter((u) => !u.profile.isActive);
 
@@ -218,14 +240,7 @@ export default function AdminDashboard() {
               </p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setUsersLoaded(false);
-              loadUsers();
-            }}
-          >
+          <Button variant="outline" size="sm" onClick={() => loadUsers(actor)}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>

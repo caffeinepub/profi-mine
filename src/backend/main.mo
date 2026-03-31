@@ -215,7 +215,7 @@ actor {
   public shared ({ caller }) func claimAdminWithPassword(password : Text) : async Bool {
     if (caller.isAnonymous()) { return false };
     if (password != _adminPassword) { return false };
-    // Grant admin role (idempotent)
+    // Grant admin role (idempotent - safe to call multiple times)
     accessControlState.userRoles.add(caller, #admin);
     accessControlState.adminAssigned := true;
     true;
@@ -226,15 +226,16 @@ actor {
   public shared ({ caller }) func registerUser() : async () {
     if (caller.isAnonymous()) { return };
     switch (accessControlState.userRoles.get(caller)) {
-      case (?_) {};
+      case (?_) {}; // already registered, preserve existing role
       case (null) {
         accessControlState.userRoles.add(caller, #user);
       };
     };
   };
 
+  // Uses safe admin check to avoid trapping on unregistered principals.
   public shared ({ caller }) func getAllUserProfiles() : async [(Text, UserProfile)] {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
+    if (not AccessControl.isAdminSafe(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can view all user profiles");
     };
 
@@ -247,7 +248,7 @@ actor {
   };
 
   public shared ({ caller }) func setUserActiveStatus(userId : Text, active : Bool) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
+    if (not AccessControl.isAdminSafe(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can set user active status");
     };
 
@@ -276,7 +277,7 @@ actor {
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
     if (caller.isAnonymous()) { return null };
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+    if (caller != user and not AccessControl.isAdminSafe(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own profile");
     };
     userProfiles.get(user);
@@ -286,6 +287,7 @@ actor {
     if (caller.isAnonymous()) {
       Runtime.trap("Anonymous callers cannot save profiles");
     };
+    // Auto-register in access control if not yet registered
     switch (accessControlState.userRoles.get(caller)) {
       case (null) {
         accessControlState.userRoles.add(caller, #user);
@@ -296,7 +298,7 @@ actor {
   };
 
   public shared ({ caller }) func setStripeConfiguration(config : Stripe.StripeConfiguration) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
+    if (not AccessControl.isAdminSafe(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can set Stripe configuration");
     };
     stripeConfig := ?config;
@@ -427,21 +429,21 @@ actor {
   };
 
   public shared ({ caller }) func handleStripeWebhook(sessionId : Text, eventType : Text) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
+    if (not AccessControl.isAdminSafe(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can handle webhooks");
     };
     if (eventType == "checkout.session.completed" or eventType == "payment_intent.succeeded") {};
   };
 
   public query ({ caller }) func getPersistentLogs() : async [(Int, LogEntry)] {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
+    if (not AccessControl.isAdminSafe(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can view logs");
     };
     persistentLog.toArray();
   };
 
   public shared ({ caller }) func clearPersistentLogs() : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
+    if (not AccessControl.isAdminSafe(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can clear logs");
     };
     persistentLog.clear();
@@ -454,7 +456,7 @@ actor {
 
     switch (projects.get(id)) {
       case (?project) {
-        if (project.owner != caller and not AccessControl.isAdmin(accessControlState, caller)) {
+        if (project.owner != caller and not AccessControl.isAdminSafe(accessControlState, caller)) {
           Runtime.trap("Unauthorized: Can only view your own projects");
         };
         project;
@@ -468,7 +470,7 @@ actor {
       Runtime.trap("Unauthorized: Only users can access projects");
     };
 
-    if (caller != owner and not AccessControl.isAdmin(accessControlState, caller)) {
+    if (caller != owner and not AccessControl.isAdminSafe(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own projects");
     };
 
@@ -480,7 +482,7 @@ actor {
       Runtime.trap("Unauthorized: Only users can access projects");
     };
 
-    let userProjects = if (AccessControl.isAdmin(accessControlState, caller)) {
+    let userProjects = if (AccessControl.isAdminSafe(accessControlState, caller)) {
       projects.values().toArray();
     } else {
       projects.values().toArray().filter(func(project) { project.owner == caller });
@@ -502,7 +504,7 @@ actor {
     switch (projects.get(id)) {
       case (null) { Runtime.trap("Project not found") };
       case (?project) {
-        if (project.owner != caller and not AccessControl.isAdmin(accessControlState, caller)) {
+        if (project.owner != caller and not AccessControl.isAdminSafe(accessControlState, caller)) {
           Runtime.trap("Unauthorized: Can only delete your own projects");
         };
         projects.remove(id);
@@ -518,21 +520,21 @@ actor {
   };
 
   public shared ({ caller }) func updateSensitivityRange(setting : Text, update : SensitivityRange) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
+    if (not AccessControl.isAdminSafe(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can update sensitivity ranges");
     };
     sensitivityRanges.add(setting, update);
   };
 
   public shared ({ caller }) func refreshProjects() : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
+    if (not AccessControl.isAdminSafe(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can refresh projects");
     };
     projects.clear();
   };
 
   public shared ({ caller }) func updateSubscription(principalId : Principal) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (not (AccessControl.isAdminSafe(accessControlState, caller))) {
       Runtime.trap("Unauthorized: Only admins can update subscriptions");
     };
 
@@ -587,7 +589,7 @@ actor {
   };
 
   public shared ({ caller }) func fullResetExports(principalId : Principal) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (not (AccessControl.isAdminSafe(accessControlState, caller))) {
       Runtime.trap("Unauthorized: Only admins can reset exports");
     };
 
@@ -613,14 +615,14 @@ actor {
       Runtime.trap("Unauthorized: Only users can save projects");
     };
 
-    if (project.owner != caller and not AccessControl.isAdmin(accessControlState, caller)) {
+    if (project.owner != caller and not AccessControl.isAdminSafe(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only save your own projects");
     };
 
     switch (projects.get(project.id)) {
       case (null) { projects.add(project.id, project) };
       case (?existingProject) {
-        if (existingProject.owner != caller and not AccessControl.isAdmin(accessControlState, caller)) {
+        if (existingProject.owner != caller and not AccessControl.isAdminSafe(accessControlState, caller)) {
           Runtime.trap("Unauthorized: Can only update your own projects");
         };
         projects.add(project.id, project);
@@ -670,7 +672,7 @@ actor {
   };
 
   public shared ({ caller }) func resetRomUsage(principalId : Principal) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (not (AccessControl.isAdminSafe(accessControlState, caller))) {
       Runtime.trap("Unauthorized: Only admins can reset ROM usage");
     };
 
